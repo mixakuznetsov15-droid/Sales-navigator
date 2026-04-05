@@ -1,833 +1,1229 @@
 <!DOCTYPE html>
-
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Sales Navigator — Лид‑план + AI‑разбор звонков</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            background: #0b1120;
-            font-family: 'Segoe UI', 'Inter', system-ui, sans-serif;
-            color: #eef2ff;
-            padding: 20px 16px 40px;
-        }
-        .container { max-width: 700px; margin: 0 auto; }
-        .tabs {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-bottom: 20px;
-            background: #111827;
-            border-radius: 48px;
-            padding: 6px;
-        }
-        .tab-btn {
-            flex: 1;
-            background: transparent;
-            border: none;
-            padding: 10px 0;
-            border-radius: 40px;
-            font-weight: 600;
-            color: #94a3b8;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 13px;
-        }
-        .tab-btn.active { background: #3b82f6; color: white; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        .card {
-            background: #111827;
-            border-radius: 28px;
-            padding: 20px;
-            margin-bottom: 20px;
-            border: 1px solid #1f2937;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-        }
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-            margin-bottom: 16px;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-        .card-title {
-            font-size: 18px;
-            font-weight: 700;
-            background: linear-gradient(135deg, #a78bfa, #3b82f6);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-        }
-        .badge {
-            background: #1e293b;
-            padding: 6px 14px;
-            border-radius: 40px;
-            font-size: 12px;
-            font-weight: 500;
-            color: #94a3b8;
-        }
-        .goals-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            margin-bottom: 12px;
-        }
-        .goal-card {
-            background: #0f172a;
-            border-radius: 24px;
-            padding: 16px;
-            text-align: center;
-            border: 1px solid #334155;
-        }
-        .goal-number { font-size: 36px; font-weight: 800; color: #facc15; }
-        .goal-label { font-size: 12px; color: #94a3b8; margin-bottom: 6px; }
-        .goal-sub { font-size: 11px; color: #475569; margin-top: 4px; }
-        .progress-bar-bg {
-            background: #1e293b;
-            border-radius: 60px;
-            height: 12px;
-            overflow: hidden;
-        }
-        .progress-fill {
-            background: linear-gradient(90deg, #3b82f6, #a855f7);
-            width: 0%;
-            height: 100%;
-            transition: width 0.5s ease;
-        }
-        .input-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            margin: 16px 0;
-        }
-        .input-group {
-            flex: 1;
-            min-width: 120px;
-        }
-        .input-group label {
-            font-size: 11px;
-            color: #94a3b8;
-            margin-bottom: 6px;
-            display: block;
-        }
-        .input-group input, .input-group textarea {
-            width: 100%;
-            background: #0f172a;
-            border: 1px solid #334155;
-            padding: 12px;
-            border-radius: 20px;
-            font-size: 14px;
-            color: #facc15;
-            outline: none;
-        }
-        .input-group input[type="file"] {
-            color: #94a3b8;
-            cursor: pointer;
-            padding: 10px 12px;
-        }
-        button {
-            background: #3b82f6;
-            border: none;
-            padding: 12px 16px;
-            border-radius: 40px;
-            font-weight: 700;
-            color: white;
-            cursor: pointer;
-            width: 100%;
-            transition: 0.2s;
-        }
-        button:hover { background: #2563eb; transform: translateY(-2px); }
-        button:disabled { background: #334155; color: #64748b; cursor: not-allowed; transform: none; }
-        .btn-reset { background: #ef4444; margin-top: 8px; }
-        .btn-reset:hover { background: #dc2626; }
-        .stats-list {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-top: 12px;
-        }
-        .stat-item {
-            display: flex;
-            justify-content: space-between;
-            border-bottom: 1px dashed #1e293b;
-            padding-bottom: 8px;
-        }
-        .week-stats {
-            background: #0f172a;
-            border-radius: 20px;
-            padding: 16px;
-            margin-top: 12px;
-        }
-        .week-row {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 10px;
-            font-size: 13px;
-        }
-
-```
-    /* API KEY */
-    .api-key-notice {
-        background: #0f172a;
-        border: 1px solid #334155;
-        border-radius: 20px;
-        padding: 16px;
-        margin-bottom: 16px;
-        font-size: 13px;
-        color: #94a3b8;
-        line-height: 1.6;
-    }
-    .api-key-notice a { color: #3b82f6; }
-    .api-key-input-row {
-        display: flex;
-        gap: 10px;
-        align-items: center;
-        margin-top: 10px;
-    }
-    .api-key-input-row input {
-        flex: 1;
-        background: #0f172a;
-        border: 1px solid #334155;
-        padding: 10px 14px;
-        border-radius: 20px;
-        font-size: 13px;
-        color: #facc15;
-        outline: none;
-        font-family: monospace;
-    }
-    .api-key-input-row button { width: auto; padding: 10px 18px; font-size: 13px; }
-    .api-key-saved { color: #10b981; font-size: 12px; margin-top: 6px; }
-
-    /* STEPS */
-    .step-indicator {
-        display: flex;
-        gap: 8px;
-        margin-bottom: 16px;
-        align-items: center;
-        font-size: 13px;
-        color: #64748b;
-    }
-    .step-dot {
-        width: 28px; height: 28px;
-        border-radius: 50%;
-        background: #1e293b;
-        display: flex; align-items: center; justify-content: center;
-        font-weight: 700; font-size: 12px;
-        flex-shrink: 0;
-    }
-    .step-dot.active { background: #3b82f6; color: white; }
-    .step-dot.done { background: #10b981; color: white; }
-    .step-arrow { color: #334155; }
-
-    /* ANALYSIS */
-    .analysis-result {
-        background: #0f172a;
-        border-radius: 20px;
-        padding: 20px;
-        margin-top: 16px;
-        border-left: 4px solid #10b981;
-    }
-    .analysis-section { margin-bottom: 20px; }
-    .analysis-section-title {
-        font-size: 12px;
-        font-weight: 700;
-        color: #64748b;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        margin-bottom: 10px;
-    }
-    .analysis-section-body {
-        font-size: 14px;
-        line-height: 1.7;
-        color: #cbd5e1;
-        white-space: pre-wrap;
-    }
-    .transcript-box {
-        max-height: 220px;
-        overflow-y: auto;
-        background: #020617;
-        border-radius: 14px;
-        padding: 14px;
-        font-size: 13px;
-        line-height: 1.7;
-        color: #94a3b8;
-        white-space: pre-wrap;
-    }
-    .score-badge {
-        display: inline-block;
-        padding: 6px 16px;
-        border-radius: 40px;
-        font-weight: 800;
-        font-size: 18px;
-    }
-    .score-high { background: #064e3b; color: #34d399; }
-    .score-mid  { background: #451a03; color: #fb923c; }
-    .score-low  { background: #450a0a; color: #f87171; }
-
-    /* LOADER */
-    .loader-wrap {
-        display: none;
-        text-align: center;
-        margin-top: 24px;
-    }
-    .loader {
-        display: inline-block;
-        width: 32px; height: 32px;
-        border: 3px solid #334155;
-        border-top-color: #3b82f6;
-        border-radius: 50%;
-        animation: spin 0.7s linear infinite;
-    }
-    .loader-text { margin-top: 10px; font-size: 13px; color: #64748b; }
-    .loader-substep { margin-top: 6px; font-size: 12px; color: #475569; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* SETTINGS */
-    .setting-row { margin: 12px 0; }
-    .setting-row label { display: block; font-size: 12px; color: #94a3b8; margin-bottom: 6px; }
-    .setting-row input {
-        width: 100%;
-        background: #0f172a;
-        border: 1px solid #334155;
-        padding: 10px 14px;
-        border-radius: 16px;
-        font-size: 14px;
-        color: #facc15;
-        outline: none;
-    }
-
-    @media (max-width: 500px) { .goals-grid { grid-template-columns: 1fr; } }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Sales Navigator v6</title>
+<link rel="manifest" href="site.webmanifest">
+<meta name="theme-color" content="#080e1a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+:root{
+  --bg:#080e1a; --card:#0f1827; --card2:#111d2e; --card3:#0b1422; --border:#1a2740;
+  --accent:#3b82f6; --accent2:#8b5cf6; --green:#10b981; --yellow:#f59e0b; --red:#ef4444;
+  --text:#e2e8f0; --muted:#94a3b8; --dim:#334155; --chip:#0d1626;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;min-height:100%;background:var(--bg);color:var(--text);font-family:Inter,Segoe UI,system-ui,sans-serif}
+body{padding:16px 14px 90px}
+.container{max-width:1100px;margin:0 auto}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px;padding:0 2px;flex-wrap:wrap}
+.brand{display:flex;flex-direction:column;gap:2px}
+.brand h1{margin:0;font-size:20px;letter-spacing:.2px;background:linear-gradient(135deg,#a78bfa,#3b82f6,#10b981);-webkit-background-clip:text;background-clip:text;color:transparent}
+.brand p,.subtle{margin:0;color:var(--muted);font-size:12px;line-height:1.45}
+.pill{display:inline-flex;align-items:center;gap:8px;background:var(--card2);border:1px solid var(--border);padding:7px 12px;border-radius:999px;font-size:12px;color:var(--muted)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px rgba(16,185,129,.12)}
+.tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;background:var(--card);border:1px solid var(--border);padding:8px;border-radius:18px;margin-bottom:14px}
+.tab-btn{background:transparent;border:none;color:var(--muted);padding:11px 8px;border-radius:14px;font-weight:700;font-size:12px;cursor:pointer;transition:.18s}
+.tab-btn.active{background:linear-gradient(135deg,#1d4ed8,#7c3aed);color:#fff;box-shadow:0 6px 16px rgba(59,130,246,.24)}
+.tab{display:none}
+.tab.active{display:block}
+.grid2{display:grid;grid-template-columns:1.3fr .9fr;gap:14px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.card{background:linear-gradient(180deg,var(--card),var(--card3));border:1px solid var(--border);border-radius:20px;padding:16px;box-shadow:0 8px 24px rgba(0,0,0,.25);margin-bottom:14px}
+.card-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.card-title{font-weight:800;font-size:15px;background:linear-gradient(135deg,#a78bfa,#3b82f6);-webkit-background-clip:text;background-clip:text;color:transparent}
+.badge{display:inline-flex;align-items:center;gap:6px;background:var(--chip);border:1px solid var(--border);border-radius:999px;padding:6px 10px;color:var(--muted);font-size:11px}
+.kpi{background:var(--card2);border:1px solid var(--border);border-radius:18px;padding:14px;position:relative;overflow:hidden}
+.kpi:before{content:'';position:absolute;left:0;top:0;height:2px;width:100%;background:linear-gradient(90deg,#3b82f6,#8b5cf6)}
+.kpi-label{color:var(--muted);font-size:11px;margin-bottom:8px;text-transform:uppercase;letter-spacing:.6px}
+.kpi-value{font-size:34px;font-weight:900;line-height:1}
+.kpi-sub{color:var(--muted);font-size:11px;margin-top:4px}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.input-row{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0}
+.input-group{flex:1;min-width:140px}
+.input-group label{display:block;color:var(--muted);font-size:11px;margin-bottom:5px}
+.input-group input,.input-group textarea,.input-group select{width:100%;background:#060d18;border:1px solid var(--dim);padding:11px 12px;border-radius:14px;color:#facc15;outline:none;font-size:13px;font-family:inherit}
+.input-group textarea{resize:vertical}
+button.primary, .btn{width:100%;background:linear-gradient(135deg,#1d4ed8,#7c3aed);border:none;color:#fff;padding:12px 14px;border-radius:14px;font-weight:800;cursor:pointer;transition:.18s;font-size:13px}
+button.primary:hover,.btn:hover{transform:translateY(-1px);filter:brightness(1.08)}
+.btn-ghost{width:auto;background:var(--card2);border:1px solid var(--border);color:var(--muted)}
+.btn-danger{background:linear-gradient(135deg,#ef4444,#dc2626)}
+.btn-green{background:linear-gradient(135deg,#10b981,#059669)}
+button:disabled{opacity:.6;cursor:not-allowed;transform:none}
+.progress{height:8px;background:#07101c;border-radius:999px;overflow:hidden;border:1px solid var(--border)}
+.fill{height:100%;border-radius:999px;background:linear-gradient(90deg,#3b82f6,#8b5cf6);transition:width .4s ease}
+.fill.green{background:linear-gradient(90deg,#10b981,#34d399)}
+.fill.yellow{background:linear-gradient(90deg,#f59e0b,#fbbf24)}
+.fill.red{background:linear-gradient(90deg,#ef4444,#fb7185)}
+.stats{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.stat{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid rgba(26,39,64,.75);font-size:13px}
+.stat:last-child{border-bottom:none}
+.small{font-size:11px;color:var(--muted)}
+.grid-call{display:grid;grid-template-columns:1.1fr .9fr;gap:14px}
+.list{display:flex;flex-direction:column;gap:8px}
+.list-item{background:var(--card2);border:1px solid var(--border);border-radius:14px;padding:11px 12px}
+.list-item strong{display:block;font-size:13px;margin-bottom:3px}
+.list-item span{color:var(--muted);font-size:11px}
+.score{display:inline-flex;align-items:center;justify-content:center;padding:7px 14px;border-radius:999px;font-weight:900;font-size:18px}
+.score.good{background:rgba(16,185,129,.12);color:#34d399;border:1px solid rgba(16,185,129,.35)}
+.score.mid{background:rgba(245,158,11,.12);color:#fbbf24;border:1px solid rgba(245,158,11,.35)}
+.score.bad{background:rgba(239,68,68,.12);color:#f87171;border:1px solid rgba(239,68,68,.35)}
+.box{background:var(--card2);border:1px solid var(--border);border-radius:16px;padding:14px}
+.textblock{white-space:pre-wrap;line-height:1.7;font-size:13px;color:#cbd5e1}
+.transcript{max-height:210px;overflow:auto;background:#060d18;border-radius:14px;border:1px solid var(--border);padding:12px;color:var(--muted);white-space:pre-wrap;font-size:12px;line-height:1.65}
+.criteria{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.crit{background:var(--card2);border:1px solid var(--border);border-radius:14px;padding:10px}
+.crit .label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.crit .num{font-size:22px;font-weight:900}
+.crit .num.good{color:#34d399}.crit .num.mid{color:#fbbf24}.crit .num.bad{color:#f87171}
+.hist-item{display:flex;justify-content:space-between;gap:12px;align-items:center;background:var(--card2);border:1px solid var(--border);border-radius:14px;padding:12px;cursor:pointer}
+.hist-item:hover{border-color:#3b82f6}
+.hist-title{font-size:13px;font-weight:700}
+.hist-meta{font-size:11px;color:var(--muted);margin-top:2px}
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.84);backdrop-filter:blur(8px);z-index:1000;align-items:center;justify-content:center;padding:14px}
+.modal-inner{width:min(560px,100%);background:var(--card);border:1px solid var(--border);border-radius:22px;padding:18px;max-height:92vh;overflow:auto}
+.modal-wide{width:min(820px,100%)}
+.loader-wrap{display:none;text-align:center;padding:18px 0}
+.loader{display:inline-block;width:32px;height:32px;border-radius:50%;border:3px solid var(--border);border-top-color:#3b82f6;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.analysis-hero{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.tag{font-size:11px;color:#c4b5fd;background:rgba(139,92,246,.12);border:1px solid rgba(139,92,246,.25);padding:5px 9px;border-radius:999px}
+.notice{background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.22);color:#cfe3ff;border-radius:14px;padding:12px;font-size:12px;line-height:1.6}
+.warn{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.22);color:#fde6ba;border-radius:14px;padding:12px;font-size:12px;line-height:1.6}
+.ok{background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.22);color:#bff7df;border-radius:14px;padding:12px;font-size:12px;line-height:1.6}
+.footer-actions{display:flex;gap:8px;flex-wrap:wrap}
+.footer-actions button{width:auto}
+.sticky-bar{position:fixed;left:0;right:0;bottom:0;background:rgba(8,14,26,.92);backdrop-filter:blur(8px);border-top:1px solid var(--border);padding:10px 14px}
+.sticky-inner{max-width:1100px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+@media (max-width: 980px){
+  .grid2,.grid3,.grid-call,.criteria{grid-template-columns:1fr}
+  .tabs{grid-template-columns:repeat(2,1fr)}
+}
 </style>
-```
-
 </head>
 <body>
 <div class="container">
-    <div class="tabs">
-        <button class="tab-btn active" data-tab="main">📊 План продаж</button>
-        <button class="tab-btn" data-tab="ai-call">🎙️ Анализ звонка</button>
+  <div class="topbar">
+    <div class="brand">
+      <h1>Sales Navigator v6</h1>
+      <p>AI-наставник для продаж: план дня, разбор звонков, недельный прогресс, PWA-режим.</p>
     </div>
-
-```
-<!-- Вкладка "План продаж" -->
-<div id="mainTab" class="tab-content active">
-    <div class="card" style="padding: 16px 20px;">
-        <div class="card-header">
-            <span class="card-title">🎯 Sales Navigator</span>
-            <button id="openSettingsBtn" style="width: auto; background: #1e293b; padding: 6px 14px;">⚙️ Настройки</button>
-        </div>
-        <div class="badge" id="dateBadge">сегодня, ...</div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <div class="pill"><span class="dot"></span><span id="accessState">проверка доступа…</span></div>
+      <div class="pill">👤 <span id="userNamePill">Гость</span></div>
+      <div class="pill">🔢 <span id="usagePill">0 анализов</span></div>
     </div>
+  </div>
 
-    <div class="goals-grid">
-        <div class="goal-card">
-            <div class="goal-label">📥 Входящие лиды (цель)</div>
-            <div class="goal-number" id="dailyInboundGoal">0</div>
-            <div class="goal-sub">лидов / день</div>
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="dashboard">📊<br>Дашборд</button>
+    <button class="tab-btn" data-tab="call">🎙️<br>Звонок</button>
+    <button class="tab-btn" data-tab="weekly">📅<br>Неделя</button>
+    <button class="tab-btn" data-tab="history">📋<br>История</button>
+    <button class="tab-btn" data-tab="settings">⚙️<br>Настройки</button>
+  </div>
+
+  <section id="dashboard" class="tab active">
+    <div class="grid2">
+      <div>
+        <div class="grid3">
+          <div class="kpi">
+            <div class="kpi-label">Оценка дня</div>
+            <div class="kpi-value" id="dayScoreKpi">—</div>
+            <div class="kpi-sub" id="dayScoreSub">пока нет данных</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">Серия дней</div>
+            <div class="kpi-value" id="streakKpi">0</div>
+            <div class="kpi-sub">дней подряд с выполнением</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">Анализы звонков</div>
+            <div class="kpi-value" id="analysesKpi">0</div>
+            <div class="kpi-sub">в этом профиле</div>
+          </div>
         </div>
-        <div class="goal-card">
-            <div class="goal-label">❄️ Холодные контакты</div>
-            <div class="goal-number" id="dailyColdGoal">0</div>
-            <div class="goal-sub">звонков / день</div>
+
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">🎯 Сегодня</div>
+            <span class="badge">что делать прямо сейчас</span>
+          </div>
+          <div id="todayPlan" class="textblock">Заполни настройки, и я покажу план дня.</div>
         </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">🤖 Killer feature — AI разбор дня</div>
+            <span class="badge">авто</span>
+          </div>
+          <div id="aiDayBlock" class="textblock">—</div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">📈 Воронка</div>
+            <span class="badge" id="funnelBadge">0% конверсия</span>
+          </div>
+          <div class="stats">
+            <div class="stat"><span>📞 Контакты</span><strong id="funnelCalls">0</strong></div>
+            <div class="stat"><span>📥 Лиды</span><strong id="funnelLeads">0</strong></div>
+            <div class="stat"><span>💰 Оплаты</span><strong id="funnelSales">0</strong></div>
+            <div class="stat"><span>📊 Выручка</span><strong id="funnelRevenue">0 ₽</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">📆 Результаты дня</div>
+            <span class="badge" id="todayBadge">—</span>
+          </div>
+          <div class="input-row">
+            <div class="input-group"><label>📥 Входящие лиды</label><input type="number" id="todayLeads" min="0" value="0"></div>
+            <div class="input-group"><label>💰 Оплаты из входящих</label><input type="number" id="todaySalesIn" min="0" value="0"></div>
+          </div>
+          <div class="input-row">
+            <div class="input-group"><label>❄️ Холодные контакты</label><input type="number" id="todayColdCalls" min="0" value="0"></div>
+            <div class="input-group"><label>💰 Оплаты из холодных</label><input type="number" id="todaySalesCold" min="0" value="0"></div>
+          </div>
+          <div class="input-row">
+            <div class="input-group"><label>🔁 Повторные касания</label><input type="number" id="todayFollowUps" min="0" value="0"></div>
+            <div class="input-group"><label>🗂️ Своя база / старые клиенты</label><input type="number" id="todayOwnBase" min="0" value="0"></div>
+          </div>
+          <button class="primary" id="saveDayBtn">✅ Зафиксировать день</button>
+          <div class="footer-actions" style="margin-top:8px">
+            <button class="btn btn-ghost" id="clearTodayBtn">Очистить</button>
+            <button class="btn btn-danger" id="resetStatsBtn">Сбросить всё</button>
+          </div>
+          <div id="dayFeedback" class="notice" style="margin-top:12px">Внеси данные за сегодня, чтобы получить оценку и фокус.</div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">⚡ Рекомендация недели</div>
+            <span class="badge">динамика</span>
+          </div>
+          <div id="weekAdvice" class="textblock">—</div>
+        </div>
+      </div>
     </div>
+  </section>
 
-    <div class="card">
-        <div class="card-header"><span class="card-title">💰 План выручки</span><span id="planPercent" class="badge">0%</span></div>
-        <div class="progress-bar-bg"><div class="progress-fill" id="revenueFill"></div></div>
-        <div class="stats-list">
-            <div class="stat-item"><span>🎯 Месячный план</span><strong id="monthPlanSpan">— ₽</strong></div>
-            <div class="stat-item"><span>✅ Факт выручки</span><strong id="factRevenueSpan">0 ₽</strong></div>
-            <div class="stat-item"><span>⚡ Осталось</span><strong id="remainRevenueSpan">— ₽</strong></div>
-        </div>
-        <div style="margin-top: 20px;">
-            <div class="card-header" style="margin-bottom: 8px;"><span class="card-title">📊 Входящие лиды</span><span id="inboundPercent" class="badge">0%</span></div>
-            <div class="progress-bar-bg"><div class="progress-fill" id="inboundLeadsFill" style="background: linear-gradient(90deg,#10b981,#34d399);"></div></div>
-            <div class="stats-list">
-                <div class="stat-item"><span>📥 Нужно лидов за месяц</span><strong id="totalInboundNeededSpan">0</strong></div>
-                <div class="stat-item"><span>✅ Принято лидов</span><strong id="totalInboundLeadsFact">0</strong></div>
+  <section id="call" class="tab">
+    <div class="grid-call">
+      <div>
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">🎙️ AI разбор звонка</div>
+            <span class="badge">MP4 / MP3 / WAV / M4A</span>
+          </div>
+
+          <div class="notice">
+            Для облачного анализа используй свой proxy endpoint. По умолчанию фронт отправляет запросы в настроенный Workers proxy.
+            Если хочешь ограничить доступ, включи код доступа в настройках.
+          </div>
+
+          <div class="input-row">
+            <div class="input-group"><label>🔑 Код доступа</label><input id="accessCodeInput" type="password" placeholder="Введите код доступа"></div>
+            <div class="input-group"><label>👤 Имя пользователя</label><input id="profileName" type="text" placeholder="Как вас зовут"></div>
+          </div>
+          <div class="input-row">
+            <div class="input-group"><label>🏢 Компания / роль</label><input id="profileRole" type="text" placeholder="Менеджер / РОП / руководитель"></div>
+            <div class="input-group"><label>🎯 Фокус</label><input id="profileGoal" type="text" placeholder="Что улучшать?"></div>
+          </div>
+          <div class="input-row">
+            <div class="input-group">
+              <label>📁 Файл звонка</label>
+              <input id="callFile" type="file" accept="audio/*,video/*,.mp4,.mp3,.wav,.m4a,.ogg">
             </div>
-        </div>
-        <div style="margin-top: 20px;">
-            <div class="card-header"><span class="card-title">📞 Холодные контакты</span><span id="coldPercent" class="badge">0%</span></div>
-            <div class="progress-bar-bg"><div class="progress-fill" id="coldContactsFill" style="background: linear-gradient(90deg,#f59e0b,#f97316);"></div></div>
-            <div class="stats-list">
-                <div class="stat-item"><span>❄️ Нужно контактов</span><strong id="totalColdNeededSpan">0</strong></div>
-                <div class="stat-item"><span>✅ Сделано контактов</span><strong id="totalColdContactsFact">0</strong></div>
-            </div>
-        </div>
-    </div>
+          </div>
+          <div class="input-group">
+            <label>📋 Контекст для AI</label>
+            <textarea id="callContext" rows="3" placeholder="Тип звонка, продукт, что важно проверить, какая боль"></textarea>
+          </div>
 
-    <div class="card">
-        <div class="card-header"><span class="card-title">📆 Сегодняшние результаты</span><span id="todayDateSpan" class="badge"></span></div>
-        <div class="input-row">
-            <div class="input-group"><label>📥 Входящие лиды сегодня</label><input type="number" id="inboundLeadsToday" value="0"></div>
-            <div class="input-group"><label>💰 Оплаты из входящих</label><input type="number" id="inboundPayments" value="0"></div>
-        </div>
-        <div class="input-row">
-            <div class="input-group"><label>❄️ Оплаты с холодных</label><input type="number" id="coldPayments" value="0"></div>
-            <div class="input-group"><label>📞 Холодных контактов</label><input type="number" id="coldCalls" value="0"></div>
-        </div>
-        <button id="submitDayBtn">✅ Зафиксировать день</button>
-        <button id="resetDataBtn" class="btn-reset">🗑️ Сбросить все данные</button>
-        <div id="dailyStatusBlock" style="margin-top: 12px; background:#0f172a; padding: 12px; border-radius: 20px;"></div>
-    </div>
+          <div class="footer-actions" style="margin-top:10px">
+            <button class="primary" id="analyzeCallBtn">🧠 Транскрибировать и проанализировать</button>
+            <button class="btn btn-ghost" id="saveProfileBtn">Сохранить профиль</button>
+          </div>
 
-    <div class="card">
-        <div class="card-header"><span class="card-title">🏆 Рейтинг эффективности</span></div>
-        <div style="background:#02061780; border-radius:60px; padding:8px 16px; display:flex; justify-content:space-between;">
-            <span>📊 Твой уровень:</span>
-            <strong id="levelName" style="background:linear-gradient(135deg,#eab308,#f97316); -webkit-background-clip:text; background-clip:text; color:transparent;">Новичок</strong>
-        </div>
-        <div class="stats-list">
-            <div class="stat-item"><span>🏅 Оплат из входящих</span><strong id="totalInboundPay">0</strong></div>
-            <div class="stat-item"><span>❄️ Холодных оплат</span><strong id="totalColdPay">0</strong></div>
-            <div class="stat-item"><span>🎯 Выполнение дневной цели</span><strong id="dailyInboundPct">0%</strong></div>
-            <div class="stat-item"><span>📞 Холодные контакты / цель</span><strong id="coldCallsRatio">0 / 0</strong></div>
-        </div>
-        <div class="week-stats">
-            <div style="font-size:13px; font-weight:600; margin-bottom:8px;">📅 Цели на неделю</div>
-            <div id="weekTargets"></div>
-            <div style="font-size:13px; font-weight:600; margin-top:12px; margin-bottom:8px;">📈 Выполнение по дням</div>
-            <div id="weekDaysProgress"></div>
-        </div>
-    </div>
-</div>
-
-<!-- Вкладка "Анализ звонка" -->
-<div id="ai-callTab" class="tab-content">
-    <div class="card">
-        <div class="card-header">
-            <span class="card-title">🎙️ Анализ звонка через AI</span>
-            <span class="badge">Groq Whisper + LLaMA</span>
-        </div>
-
-        <!-- Step indicator -->
-        <div class="step-indicator">
-            <div class="step-dot" id="step1dot">1</div>
-            <span>Ключ</span>
-            <span class="step-arrow">→</span>
-            <div class="step-dot" id="step2dot">2</div>
-            <span>Аудио</span>
-            <span class="step-arrow">→</span>
-            <div class="step-dot" id="step3dot">3</div>
-            <span>Анализ</span>
-        </div>
-
-        <!-- API Key -->
-        <div class="api-key-notice">
-            <strong>🔑 Groq API Key</strong> (бесплатно, карта не нужна)<br>
-            Получи на <a href="https://console.groq.com" target="_blank">console.groq.com</a> → API Keys → Create API Key → No expiration<br>
-            Ключ хранится только в твоём браузере.
-            <div class="api-key-input-row">
-                <input type="password" id="apiKeyInput" placeholder="gsk_...">
-                <button id="saveApiKeyBtn" style="background:#10b981;">Сохранить</button>
-            </div>
-            <div id="apiKeySavedMsg" class="api-key-saved" style="display:none;">✅ Ключ сохранён</div>
-        </div>
-
-        <!-- Audio upload -->
-        <div class="input-group" style="margin-bottom: 16px;">
-            <label>📁 Аудиофайл звонка (MP3, WAV, OGG, M4A — до 25 МБ)</label>
-            <input type="file" id="callAudioFile" accept="audio/*">
-        </div>
-
-        <!-- Context -->
-        <div class="input-group" style="margin-bottom: 16px;">
-            <label>📋 Контекст (необязательно): продукт, этап, что хотите улучшить</label>
-            <textarea id="callContext" rows="2" style="color:#94a3b8; font-size:13px; resize:vertical;" placeholder="Например: онлайн-курс по финансам, холодный лид, хочу проверить отработку возражений"></textarea>
-        </div>
-
-        <button id="analyzeCallBtn">🧠 Транскрибировать и проанализировать</button>
-
-        <!-- Loading -->
-        <div class="loader-wrap" id="loadingIndicator">
+          <div class="loader-wrap" id="callLoader">
             <div class="loader"></div>
-            <div class="loader-text" id="loaderText">Обработка...</div>
-            <div class="loader-substep" id="loaderSubstep"></div>
-        </div>
+            <div class="small" id="callLoaderText">Подготовка…</div>
+          </div>
 
-        <!-- Result -->
-        <div id="analysisResult" style="display: none; margin-top: 20px;">
-            <div class="analysis-result">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                    <strong style="font-size: 16px;">📊 Результаты анализа</strong>
-                    <span class="score-badge" id="overallScore">—</span>
-                </div>
-
-                <div class="analysis-section">
-                    <div class="analysis-section-title">📝 Транскрипция (Whisper)</div>
-                    <div class="transcript-box" id="transcriptText"></div>
-                </div>
-
-                <div class="analysis-section">
-                    <div class="analysis-section-title">🤖 AI-разбор (LLaMA)</div>
-                    <div class="analysis-section-body" id="analysisText"></div>
-                </div>
+          <div id="callOutput" style="display:none;margin-top:14px">
+            <div class="analysis-hero">
+              <div class="badge">Оценка звонка</div>
+              <div id="callScore" class="score mid">—</div>
             </div>
+
+            <div class="criteria" id="criteriaGrid" style="margin:12px 0"></div>
+
+            <div class="box" style="margin-bottom:12px">
+              <div class="card-head" style="margin-bottom:8px">
+                <div class="card-title">📝 Транскрипция</div>
+                <span class="tag">whisper</span>
+              </div>
+              <div class="transcript" id="transcriptText"></div>
+            </div>
+
+            <div class="box">
+              <div class="card-head" style="margin-bottom:8px">
+                <div class="card-title">🤖 AI-разбор</div>
+                <span class="tag">sales coach</span>
+              </div>
+              <div class="textblock" id="analysisText"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">🔐 Доступ и лимиты</div>
+            <span class="badge" id="limitBadge">free trial</span>
+          </div>
+          <div class="stats">
+            <div class="stat"><span>Пользователь</span><strong id="userStat">—</strong></div>
+            <div class="stat"><span>Просмотры</span><strong id="visitsStat">0</strong></div>
+            <div class="stat"><span>Анализы</span><strong id="analysesStat">0</strong></div>
+            <div class="stat"><span>Лимит trial</span><strong id="trialStat">0 / 0</strong></div>
+          </div>
+          <button class="btn btn-green" id="activateAccessBtn" style="margin-top:10px">🔓 Активировать доступ</button>
         </div>
 
-        <div class="badge" style="margin-top: 16px; display: inline-block;">
-            💡 Whisper транскрибирует → LLaMA анализирует технику продаж
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">🧠 Как работает AI</div>
+            <span class="badge">1 поток</span>
+          </div>
+          <div class="textblock">
+1. Загружаешь MP4/аудио
+2. Файл уходит в proxy
+3. Proxy делает транскрибацию
+4. AI возвращает разбор
+5. Результат сохраняется в истории
+
+Если хочешь ограничить доступ и считать пользователей — позже переносим это на backend.
+          </div>
         </div>
+      </div>
     </div>
-</div>
-```
+  </section>
 
-</div>
+  <section id="weekly" class="tab">
+    <div class="grid2">
+      <div>
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">📅 Итог недели</div>
+            <span class="badge">последние 7 дней</span>
+          </div>
+          <div class="grid3" style="margin-bottom:12px">
+            <div class="kpi">
+              <div class="kpi-label">Средняя оценка</div>
+              <div class="kpi-value" id="weeklyAvgScore">—</div>
+              <div class="kpi-sub">по дням</div>
+            </div>
+            <div class="kpi">
+              <div class="kpi-label">Лучший день</div>
+              <div class="kpi-value" id="bestDayScore">—</div>
+              <div class="kpi-sub">максимум</div>
+            </div>
+            <div class="kpi">
+              <div class="kpi-label">Рост</div>
+              <div class="kpi-value" id="weeklyGrowth">—</div>
+              <div class="kpi-sub">сравнение половин недели</div>
+            </div>
+          </div>
+          <div id="weeklySummary" class="textblock">—</div>
+        </div>
 
-<!-- Настройки -->
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">📈 Прогресс выполнения</div>
+            <span class="badge">месяц</span>
+          </div>
+          <div class="stats">
+            <div class="stat"><span>🎯 План выручки</span><strong id="monthPlanOut">—</strong></div>
+            <div class="stat"><span>✅ Факт выручки</span><strong id="factRevenueOut">—</strong></div>
+            <div class="stat"><span>⚡ Осталось</span><strong id="remainRevenueOut">—</strong></div>
+            <div class="stat"><span>📥 Факт лидов</span><strong id="factLeadsOut">0</strong></div>
+            <div class="stat"><span>❄️ Факт холодных</span><strong id="factColdOut">0</strong></div>
+          </div>
+        </div>
+      </div>
 
-<div id="settingsModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); backdrop-filter:blur(4px); justify-content:center; align-items:center; z-index:1000;">
-    <div style="background:#111827; max-width:460px; width:90%; border-radius:32px; padding:24px; max-height:90vh; overflow-y:auto;">
-        <h3 style="margin-bottom:16px;">⚙️ Настройки месяца</h3>
-        <div class="setting-row"><label>💰 Месячный план (₽)</label><input type="number" id="monthPlan" value="1750000"></div>
-        <div class="setting-row"><label>💵 Средний чек (₽)</label><input type="number" id="avgCheck" value="107000"></div>
-        <div class="setting-row"><label>📊 Конверсия %</label><input type="number" id="conversionRate" value="6"></div>
-        <div class="setting-row"><label>📅 Рабочих дней</label><input type="number" id="workDays" value="22"></div>
-        <div class="setting-row"><label>🎯 Доля из входящих (%)</label><input type="number" id="inboundShare" value="70"></div>
-        <div class="setting-row"><label>❄️ Доля из холодных (%)</label><input type="number" id="coldShare" value="25"></div>
-        <button id="saveSettingsBtn" style="margin-top:10px;">Сохранить</button>
-        <button id="closeSettingsBtn" style="background:#334155; margin-top:8px;">Закрыть</button>
+      <div>
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">⚡ План на неделю</div>
+            <span class="badge">действия</span>
+          </div>
+          <div id="weeklyPlan" class="textblock">—</div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">🔥 Streak & привычка</div>
+            <span class="badge">мотивация</span>
+          </div>
+          <div id="streakBox" class="textblock">—</div>
+        </div>
+      </div>
     </div>
+  </section>
+
+  <section id="history" class="tab">
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">📋 История анализов</div>
+        <span class="badge" id="historyCount">0</span>
+      </div>
+      <div id="historyList" class="list"></div>
+      <div class="footer-actions" style="margin-top:10px">
+        <button class="btn btn-ghost" id="exportJsonBtn">⬇️ JSON</button>
+        <button class="btn btn-danger" id="clearHistoryBtn">🗑️ Очистить историю</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="settings" class="tab">
+    <div class="grid2">
+      <div class="card">
+        <div class="card-head"><div class="card-title">⚙️ Настройки продукта</div><span class="badge">локально</span></div>
+        <div class="input-row">
+          <div class="input-group"><label>💰 Месячный план</label><input id="monthPlan" type="number" value="1750000"></div>
+          <div class="input-group"><label>💵 Средний чек</label><input id="avgCheck" type="number" value="107000"></div>
+        </div>
+        <div class="input-row">
+          <div class="input-group"><label>📊 Конверсия (%)</label><input id="conversionRate" type="number" value="6"></div>
+          <div class="input-group"><label>📅 Рабочих дней</label><input id="workDays" type="number" value="22"></div>
+        </div>
+        <div class="input-row">
+          <div class="input-group"><label>🎯 Доля входящих (%)</label><input id="inboundShare" type="number" value="70"></div>
+          <div class="input-group"><label>❄️ Доля холодных (%)</label><input id="coldShare" type="number" value="25"></div>
+        </div>
+        <div class="input-row">
+          <div class="input-group"><label>⏱️ Trial лимит анализов</label><input id="trialLimit" type="number" value="3"></div>
+          <div class="input-group"><label>🔐 Код доступа</label><input id="accessCode" type="text" placeholder="SN-V6-2026"></div>
+        </div>
+        <div class="input-group">
+          <label>🌐 Proxy endpoint base</label>
+          <input id="proxyBase" type="text" placeholder="https://your-worker.example.workers.dev">
+        </div>
+        <div class="input-group" style="margin-top:10px">
+          <label>📡 Analytics endpoint (опционально)</label>
+          <input id="analyticsUrl" type="text" placeholder="https://your-analytics-endpoint.example/track">
+        </div>
+        <div class="footer-actions" style="margin-top:12px">
+          <button class="primary" id="saveSettingsBtn">💾 Сохранить</button>
+          <button class="btn btn-ghost" id="resetLocalBtn">Сбросить локальные данные</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><div class="card-title">🧩 Как это устроено</div><span class="badge">для теста</span></div>
+        <div class="notice">
+          В текущем MVP доступ и лимиты работают на стороне браузера. Это удобно для пилота и быстрых тестов, но не даёт настоящей защиты.
+          Когда гипотеза подтвердится, переносим access control, пользователей и подписки на backend.
+        </div>
+        <div class="warn" style="margin-top:10px">
+          Для публичного продукта лучше не хранить секреты в браузере.  
+          Сейчас это подходит для бета-доступа, коллег и ручной проверки спроса.
+        </div>
+        <div class="ok" style="margin-top:10px">
+          Что уже есть: оценка дня, фокус, недельный отчёт, история, лимит trial, PWA, анализ звонков, local analytics.
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="sticky-bar">
+  <div class="sticky-inner">
+    <div class="small" id="statusLine">Готов к работе</div>
+    <div class="footer-actions">
+      <button class="btn btn-ghost" id="installBtn" style="display:none">📲 Установить</button>
+      <button class="btn btn-ghost" id="backupBtn">💾 Backup</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="accessModal">
+  <div class="modal-inner">
+    <div class="card-head">
+      <div class="card-title">🔐 Доступ к Sales Navigator</div>
+      <span class="badge">первый вход</span>
+    </div>
+    <div class="notice">
+      Введи код доступа и имя. После активации можно будет открыть приложение без повторного ввода на этом устройстве.
+    </div>
+    <div class="input-row">
+      <div class="input-group"><label>Код доступа</label><input id="modalAccessCode" type="password" placeholder="SN-V6-2026"></div>
+      <div class="input-group"><label>Имя</label><input id="modalUserName" type="text" placeholder="Михаил"></div>
+    </div>
+    <div class="input-row">
+      <div class="input-group"><label>Роль</label><input id="modalUserRole" type="text" placeholder="Менеджер / РОП"></div>
+      <div class="input-group"><label>Фокус</label><input id="modalUserGoal" type="text" placeholder="Прокачать конверсию"></div>
+    </div>
+    <button class="primary" id="confirmAccessBtn">🔓 Открыть приложение</button>
+  </div>
+</div>
+
+<div class="modal" id="analysisModal">
+  <div class="modal-inner modal-wide">
+    <div class="analysis-hero">
+      <div class="card-title">📄 Разбор звонка</div>
+      <div class="footer-actions">
+        <button class="btn btn-ghost" id="closeAnalysisBtn">✕</button>
+      </div>
+    </div>
+    <div id="analysisModalContent" style="margin-top:12px"></div>
+  </div>
 </div>
 
 <script>
-// ===================== SALES MODULE =====================
-let state = {
-    settings: { monthPlan: 1750000, avgCheck: 107000, conversion: 0.06, workDays: 22, inboundShare: 70, coldShare: 25 },
-    totalInboundLeads: 0, totalInboundPayments: 0, totalColdPayments: 0, totalColdContacts: 0, dailyLog: []
+const STORAGE_KEY = 'salesNavV6';
+const DEFAULTS = {
+  settings: {
+    monthPlan: 1750000,
+    avgCheck: 107000,
+    conversionRate: 0.06,
+    workDays: 22,
+    inboundShare: 70,
+    coldShare: 25,
+    trialLimit: 3,
+    accessCode: 'SN-V6-2026',
+    proxyBase: 'https://sales-navigator.g6dfdsggt8.workers.dev',
+    analyticsUrl: ''
+  },
+  profile: { name: '', role: '', goal: '' },
+  stats: { visits: 0, analyses: 0, dayLogs: [], callHistory: [] },
+  access: { granted: false, userId: '' }
 };
+let state = structuredClone(DEFAULTS);
+let deferredPrompt = null;
+let currentCallResult = null;
 
-function loadFromLS() {
-    try {
-        const s = localStorage.getItem('salesNavigator');
-        if (s) {
-            const p = JSON.parse(s);
-            if (p.settings) state.settings = { ...state.settings, ...p.settings };
-            ['totalInboundLeads','totalInboundPayments','totalColdPayments','totalColdContacts'].forEach(k => { if (p[k] !== undefined) state[k] = p[k]; });
-            if (p.dailyLog) state.dailyLog = p.dailyLog;
-        }
-    } catch(e) {}
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      state.settings = { ...state.settings, ...(parsed.settings || {}) };
+      state.profile = { ...state.profile, ...(parsed.profile || {}) };
+      state.stats = { ...state.stats, ...(parsed.stats || {}) };
+      state.access = { ...state.access, ...(parsed.access || {}) };
+    }
+  } catch (e) {}
+}
+function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+function uid() {
+  return 'u_' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+}
+function todayISO() {
+  return new Date().toISOString().slice(0,10);
+}
+function fmt(n){ return Number(n).toLocaleString('ru-RU'); }
+function pct(n){ return (Number(n) * 100).toFixed(1) + '%'; }
+
+function track(event, data={}) {
+  const url = (state.settings.analyticsUrl || '').trim();
+  if (!url) return;
+  const payload = {
+    event,
+    data,
+    userId: state.access.userId || '',
+    name: state.profile.name || '',
+    role: state.profile.role || '',
+    ts: new Date().toISOString()
+  };
+  fetch(url, {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify(payload)
+  }).catch(()=>{});
 }
 
-function saveToLS() {
-    localStorage.setItem('salesNavigator', JSON.stringify(state));
+function setTab(tabName) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(tabName).classList.add('active');
+  document.querySelector(`.tab-btn[data-tab="${tabName}"]`).classList.add('active');
+  renderAll();
 }
 
 function computeGoals() {
-    const s = state.settings;
-    const inbR = s.monthPlan * (s.inboundShare / 100);
-    const coldR = s.monthPlan * (s.coldShare / 100);
-    return {
-        dailyInboundLeads: Math.ceil((inbR / s.avgCheck / s.conversion) / s.workDays),
-        dailyColdContacts: Math.ceil((coldR / s.avgCheck / s.conversion) / s.workDays),
-        totalInboundLeadsNeeded: Math.ceil(inbR / s.avgCheck / s.conversion),
-        totalColdLeadsNeeded: Math.ceil(coldR / s.avgCheck / s.conversion)
-    };
+  const s = state.settings;
+  const inbRev = s.monthPlan * (s.inboundShare / 100);
+  const coldRev = s.monthPlan * (s.coldShare / 100);
+  const inboundNeeded = inbRev / s.avgCheck / s.conversionRate;
+  const coldNeeded = coldRev / s.avgCheck / s.conversionRate;
+  return {
+    dailyInbound: Math.ceil(inboundNeeded / s.workDays),
+    dailyCold: Math.ceil(coldNeeded / s.workDays),
+    inboundNeeded: Math.ceil(inboundNeeded),
+    coldNeeded: Math.ceil(coldNeeded),
+    inboundRevenueTarget: inbRev,
+    coldRevenueTarget: coldRev
+  };
 }
 
-function getCurrentRevenue() {
-    return (state.totalInboundPayments + state.totalColdPayments) * state.settings.avgCheck;
+function currentRevenue() {
+  const { totalInboundPayments, totalColdPayments } = aggregateMonth();
+  return (totalInboundPayments + totalColdPayments) * state.settings.avgCheck;
 }
 
-function commitDay() {
-    const il = parseInt(document.getElementById('inboundLeadsToday').value) || 0;
-    const ip = parseInt(document.getElementById('inboundPayments').value) || 0;
-    const cp = parseInt(document.getElementById('coldPayments').value) || 0;
-    const cc = parseInt(document.getElementById('coldCalls').value) || 0;
-    if (!il && !ip && !cp && !cc) return alert('Введите данные');
-    const today = new Date().toISOString().slice(0,10);
-    const ex = state.dailyLog.find(d => d.date === today);
-    if (ex) {
-        state.totalInboundLeads -= ex.inboundLeads || 0;
-        state.totalInboundPayments -= ex.inboundPayments || 0;
-        state.totalColdPayments -= ex.coldPayments || 0;
-        state.totalColdContacts -= ex.coldCalls || 0;
-        state.dailyLog = state.dailyLog.filter(d => d.date !== today);
-    }
-    state.totalInboundLeads += il;
-    state.totalInboundPayments += ip;
-    state.totalColdPayments += cp;
-    state.totalColdContacts += cc;
-    state.dailyLog.push({ date: today, inboundLeads: il, inboundPayments: ip, coldPayments: cp, coldCalls: cc });
-    saveToLS();
-    ['inboundLeadsToday','inboundPayments','coldPayments','coldCalls'].forEach(id => document.getElementById(id).value = '0');
-    renderMainUI();
-    alert('✅ День зафиксирован');
+function aggregateMonth() {
+  const sums = { totalInboundLeads: 0, totalInboundPayments: 0, totalColdPayments: 0, totalColdContacts: 0, followUps: 0, ownBase: 0 };
+  for (const d of state.stats.dayLogs) {
+    sums.totalInboundLeads += d.inboundLeads || 0;
+    sums.totalInboundPayments += d.inboundPayments || 0;
+    sums.totalColdPayments += d.coldPayments || 0;
+    sums.totalColdContacts += d.coldCalls || 0;
+    sums.followUps += d.followUps || 0;
+    sums.ownBase += d.ownBase || 0;
+  }
+  return sums;
 }
 
-function resetAll() {
-    if (!confirm('Сбросить всю статистику?')) return;
-    state.totalInboundLeads = state.totalInboundPayments = state.totalColdPayments = state.totalColdContacts = 0;
-    state.dailyLog = [];
-    saveToLS();
-    renderMainUI();
+function calcDailyScore(d) {
+  const g = computeGoals();
+  const leadsPart = g.dailyInbound ? Math.min(4, (d.inboundLeads / g.dailyInbound) * 4) : 0;
+  const coldPart = g.dailyCold ? Math.min(2.5, (d.coldCalls / g.dailyCold) * 2.5) : 0;
+  const followPart = Math.min(1.5, (d.followUps / Math.max(8, g.dailyInbound)) * 1.5);
+  const revenuePart = Math.min(2, (((d.inboundPayments || 0) + (d.coldPayments || 0)) / Math.max(1, g.dailyInbound)) * 2);
+  const base = leadsPart + coldPart + followPart + revenuePart;
+  return Math.max(0, Math.min(10, base));
 }
 
-function renderMainUI() {
-    const g = computeGoals();
-    const factRev = getCurrentRevenue();
-    const prog = Math.min(100, (factRev / state.settings.monthPlan) * 100);
-    const inbPct = g.totalInboundLeadsNeeded ? (state.totalInboundLeads / g.totalInboundLeadsNeeded) * 100 : 0;
-    const coldPct = g.totalColdLeadsNeeded ? (state.totalColdContacts / g.totalColdLeadsNeeded) * 100 : 0;
-
-    document.getElementById('dailyInboundGoal').innerText = g.dailyInboundLeads;
-    document.getElementById('dailyColdGoal').innerText = g.dailyColdContacts;
-    document.getElementById('monthPlanSpan').innerHTML = state.settings.monthPlan.toLocaleString() + ' ₽';
-    document.getElementById('factRevenueSpan').innerHTML = factRev.toLocaleString() + ' ₽';
-    document.getElementById('remainRevenueSpan').innerHTML = Math.max(0, state.settings.monthPlan - factRev).toLocaleString() + ' ₽';
-    document.getElementById('planPercent').innerHTML = prog.toFixed(1) + '%';
-    document.getElementById('revenueFill').style.width = prog + '%';
-    document.getElementById('inboundPercent').innerHTML = inbPct.toFixed(1) + '%';
-    document.getElementById('inboundLeadsFill').style.width = Math.min(100, inbPct) + '%';
-    document.getElementById('totalInboundNeededSpan').innerHTML = g.totalInboundLeadsNeeded;
-    document.getElementById('totalInboundLeadsFact').innerHTML = state.totalInboundLeads;
-    document.getElementById('coldPercent').innerHTML = coldPct.toFixed(1) + '%';
-    document.getElementById('coldContactsFill').style.width = Math.min(100, coldPct) + '%';
-    document.getElementById('totalColdNeededSpan').innerHTML = g.totalColdLeadsNeeded;
-    document.getElementById('totalColdContactsFact').innerHTML = state.totalColdContacts;
-    document.getElementById('totalInboundPay').innerHTML = state.totalInboundPayments;
-    document.getElementById('totalColdPay').innerHTML = state.totalColdPayments;
-    document.getElementById('dailyInboundPct').innerHTML = inbPct.toFixed(1) + '%';
-    document.getElementById('coldCallsRatio').innerHTML = `${state.totalColdContacts} / ${g.totalColdLeadsNeeded}`;
-
-    let level = 'Новичок';
-    if (prog >= 100) level = '👑 Легенда';
-    else if (prog >= 75) level = '⚡ Мастер';
-    else if (prog >= 50) level = '🚀 Профи';
-    else if (prog >= 25) level = '⚔️ Боец';
-    document.getElementById('levelName').innerHTML = level;
-
-    const today = new Date().toISOString().slice(0,10);
-    const tl = state.dailyLog.find(d => d.date === today);
-    let msg = tl
-        ? ((tl.inboundLeads >= g.dailyInboundLeads && tl.coldCalls >= g.dailyColdContacts)
-            ? '🏅 Молодец! Дневная норма выполнена!'
-            : `📊 Сегодня: лиды ${tl.inboundLeads}/${g.dailyInboundLeads}, контакты ${tl.coldCalls}/${g.dailyColdContacts}`)
-        : '⚡ Внеси данные за сегодня';
-    document.getElementById('dailyStatusBlock').innerHTML = `<div>${msg}</div>`;
-    document.getElementById('weekTargets').innerHTML = `<div class="week-row">К концу недели: лидов ~${g.dailyInboundLeads * 5}, контактов ~${g.dailyColdContacts * 5}</div>`;
-    document.getElementById('weekDaysProgress').innerHTML = `<div class="week-row">✅ Следи за ежедневными целями, чтобы выйти на план.</div>`;
+function calcStreak() {
+  const logs = [...state.stats.dayLogs].sort((a,b)=>a.date.localeCompare(b.date));
+  let streak = 0;
+  for (let i = logs.length - 1; i >= 0; i--) {
+    const score = calcDailyScore(logs[i]);
+    if (score >= 6) streak++;
+    else break;
+  }
+  return streak;
 }
 
-// ===================== GROQ AI ANALYSIS =====================
-const GROQ_API = 'https://sales-navigator.g6dfdsggt8.workers.dev';
+function buildDayInsight() {
+  const logs = state.stats.dayLogs;
+  if (!logs.length) return 'Пока нет дневных данных. Зафиксируй день — и я покажу, где узкое место.';
+  const last = logs[logs.length - 1];
+  const g = computeGoals();
+  const score = calcDailyScore(last);
+  const total = aggregateMonth();
+  const monthRev = currentRevenue();
+  const monthPct = (monthRev / state.settings.monthPlan) * 100;
 
-function getApiKey() { return localStorage.getItem('groqApiKey') || ''; }
-
-function saveApiKey() {
-    const key = document.getElementById('apiKeyInput').value.trim();
-    if (!key.startsWith('gsk_')) { alert('Ключ должен начинаться с "gsk_"'); return; }
-    localStorage.setItem('groqApiKey', key);
-    document.getElementById('apiKeySavedMsg').style.display = 'block';
-    updateStepDots();
-    setTimeout(() => document.getElementById('apiKeySavedMsg').style.display = 'none', 3000);
+  let lines = [];
+  lines.push(`Сегодняшняя оценка: ${score.toFixed(1)}/10.`);
+  if (last.inboundLeads < g.dailyInbound) lines.push(`Не хватает входящих: ${last.inboundLeads}/${g.dailyInbound}.`);
+  if (last.coldCalls < g.dailyCold) lines.push(`Холодная активность ниже плана: ${last.coldCalls}/${g.dailyCold}.`);
+  if (last.followUps < 8) lines.push(`Повторные касания слабые: ${last.followUps}.`);
+  if ((last.inboundPayments || 0) + (last.coldPayments || 0) === 0) lines.push('Нет оплат — проверь скрипт, квалификацию и закрытие.');
+  if (monthPct < 50) lines.push('Ты пока ниже 50% плана — важнее поднять входящий поток и дожим.');
+  else if (monthPct < 80) lines.push('План уже близко, сейчас нужна дисциплина и быстрые повторные касания.');
+  else lines.push('Ты близко к финишу. Сейчас главный фокус — не терять темп и добивать остаток.');
+  lines.push('');
+  lines.push(`Фокус дня: ${recommendFocus(last)}`);
+  return lines.join('\n');
 }
 
-function updateStepDots() {
-    const hasKey = !!getApiKey();
-    document.getElementById('step1dot').className = 'step-dot ' + (hasKey ? 'done' : 'active');
-    document.getElementById('step2dot').className = 'step-dot ' + (hasKey ? 'active' : '');
+function recommendFocus(d) {
+  const g = computeGoals();
+  if (d.inboundLeads < g.dailyInbound * 0.7) return 'добрать входящие и не распыляться';
+  if (d.coldCalls < g.dailyCold * 0.7) return 'усилить холодный прозвон';
+  if ((d.inboundPayments || 0) + (d.coldPayments || 0) === 0) return 'дожим и отработка возражений';
+  if (d.followUps < 8) return 'повторные касания и доведение до оплаты';
+  return 'масштабировать лучший сценарий';
+}
+
+function getWeeklySlice() {
+  return state.stats.dayLogs.slice(-7);
+}
+
+function weeklySummaryText() {
+  const logs = getWeeklySlice();
+  if (!logs.length) return 'Нет данных за неделю.';
+  const scores = logs.map(calcDailyScore);
+  const avg = scores.reduce((a,b)=>a+b,0) / scores.length;
+  const best = Math.max(...scores);
+  const firstHalf = scores.slice(0, Math.ceil(scores.length/2));
+  const secondHalf = scores.slice(Math.ceil(scores.length/2));
+  const avg1 = firstHalf.length ? firstHalf.reduce((a,b)=>a+b,0)/firstHalf.length : 0;
+  const avg2 = secondHalf.length ? secondHalf.reduce((a,b)=>a+b,0)/secondHalf.length : 0;
+  const growth = avg2 - avg1;
+  const last = logs[logs.length-1];
+  return [
+    `За 7 дней средняя оценка: ${avg.toFixed(1)}/10.`,
+    `Лучший день: ${best.toFixed(1)}/10.`,
+    `Рост во второй половине недели: ${growth >= 0 ? '+' : ''}${growth.toFixed(1)}.`,
+    `Последний день подсказал фокус: ${recommendFocus(last)}.`,
+    '',
+    `Совет: добей слабый канал и повторные касания, а потом усиливай только тот источник, который даёт оплату быстрее всего.`
+  ].join('\n');
+}
+
+function weeklyPlanText() {
+  const g = computeGoals();
+  const total = aggregateMonth();
+  const remainRev = Math.max(0, state.settings.monthPlan - currentRevenue());
+  const remainDays = Math.max(1, state.settings.workDays - Math.min(state.settings.workDays, state.stats.dayLogs.length || 0));
+  const needPerDay = remainRev / remainDays;
+  const salesPerDay = needPerDay / state.settings.avgCheck;
+  const leadsPerDay = salesPerDay / state.settings.conversionRate;
+  return [
+    `1) Входящие: держи минимум ${g.dailyInbound} в день.`,
+    `2) Холодные контакты: ${g.dailyCold} в день только если не проседает входящий поток.`,
+    `3) Повторные касания: от 8+ в день.`,
+    `4) Своя база: используй как добор, не как основную ставку.`,
+    `5) Остаток плана: ${fmt(remainRev)} ₽, ориентир на день: ${fmt(Math.round(needPerDay))} ₽.`,
+    `6) Для этого темпа нужно примерно ${leadsPerDay.toFixed(1)} лидов в день.`,
+    '',
+    `Главная идея недели: сначала не дать упасть конверсии, потом добирать объём.`
+  ].join('\n');
+}
+
+function updateAccessUI() {
+  const granted = !!state.access.granted;
+  document.getElementById('accessState').textContent = granted ? 'доступ активен' : 'доступ закрыт';
+  document.getElementById('accessState').style.color = granted ? '#bff7df' : '#fde6ba';
+  document.getElementById('userNamePill').textContent = state.profile.name || 'Гость';
+  document.getElementById('usagePill').textContent = `${state.stats.analyses || 0} анализов`;
+  document.getElementById('userStat').textContent = state.profile.name || '—';
+  document.getElementById('visitsStat').textContent = state.stats.visits || 0;
+  document.getElementById('analysesStat').textContent = state.stats.analyses || 0;
+  document.getElementById('trialStat').textContent = `${state.stats.analyses || 0} / ${state.settings.trialLimit}`;
+  document.getElementById('limitBadge').textContent = (state.stats.analyses || 0) >= state.settings.trialLimit ? 'trial done' : 'free trial';
+}
+
+function renderDashboard() {
+  const g = computeGoals();
+  const agg = aggregateMonth();
+  const rev = currentRevenue();
+  const pctPlan = (rev / state.settings.monthPlan) * 100;
+  const totalSales = (agg.totalInboundPayments || 0) + (agg.totalColdPayments || 0);
+  const convPct = agg.totalInboundLeads ? (totalSales / agg.totalInboundLeads) * 100 : 0;
+  const last = state.stats.dayLogs[state.stats.dayLogs.length - 1];
+
+  document.getElementById('dayScoreKpi').textContent = last ? calcDailyScore(last).toFixed(1) + '/10' : '—';
+  document.getElementById('dayScoreSub').textContent = last ? `последний день: ${last.date}` : 'пока нет данных';
+  document.getElementById('streakKpi').textContent = calcStreak();
+  document.getElementById('analysesKpi').textContent = state.stats.analyses || 0;
+  document.getElementById('todayBadge').textContent = new Date().toLocaleDateString('ru-RU');
+
+  document.getElementById('todayPlan').textContent = [
+    `Бери сегодня: ${g.dailyInbound} входящих лидов.`,
+    `Холодные контакты: ${g.dailyCold} только если не проседают входящие.`,
+    `Повторные касания: минимум 8.`,
+    `Своя база: добор без влияния на конверсию.`,
+    '',
+    `Если не хватает входящих — не компенсируй это холодным до потери качества.`
+  ].join('\n');
+
+  document.getElementById('aiDayBlock').textContent = buildDayInsight();
+  document.getElementById('weekAdvice').textContent = `Ориентир по темпу: ${fmt(Math.round((Math.max(0, state.settings.monthPlan - rev) / Math.max(1, state.settings.workDays - (state.stats.dayLogs.length || 0))))) } ₽ в день.`;
+
+  document.getElementById('funnelCalls').textContent = agg.totalColdContacts;
+  document.getElementById('funnelLeads').textContent = agg.totalInboundLeads;
+  document.getElementById('funnelSales').textContent = totalSales;
+  document.getElementById('funnelRevenue').textContent = fmt(rev) + ' ₽';
+  document.getElementById('funnelBadge').textContent = convPct.toFixed(1) + '% конверсия';
+
+  document.getElementById('dayFeedback').className = (last && calcDailyScore(last) >= 7) ? 'ok' : ((last && calcDailyScore(last) >= 5) ? 'warn' : 'notice');
+  document.getElementById('dayFeedback').textContent = last ? `Последний день: ${last.date}. Оценка ${calcDailyScore(last).toFixed(1)}/10. Фокус: ${recommendFocus(last)}.` : 'Внеси данные за сегодня, чтобы получить оценку и фокус.';
+
+  document.getElementById('monthPlanOut').textContent = fmt(state.settings.monthPlan) + ' ₽';
+  document.getElementById('factRevenueOut').textContent = fmt(rev) + ' ₽';
+  document.getElementById('remainRevenueOut').textContent = fmt(Math.max(0, state.settings.monthPlan - rev)) + ' ₽';
+  document.getElementById('factLeadsOut').textContent = agg.totalInboundLeads;
+  document.getElementById('factColdOut').textContent = agg.totalColdContacts;
+
+  renderWeekly();
+  renderHistory();
+  document.getElementById('statusLine').textContent = state.access.granted ? `Готово · ${state.profile.name || 'пользователь'} · ${state.stats.analyses || 0} анализов` : 'Введи код доступа, чтобы начать';
+}
+
+function renderWeekly() {
+  const logs = getWeeklySlice();
+  const scores = logs.map(calcDailyScore);
+  const avg = scores.length ? (scores.reduce((a,b)=>a+b,0) / scores.length) : null;
+  const best = scores.length ? Math.max(...scores) : null;
+  let growth = null;
+  if (scores.length >= 4) {
+    const mid = Math.ceil(scores.length/2);
+    const a1 = scores.slice(0, mid).reduce((a,b)=>a+b,0)/Math.max(1, mid);
+    const a2 = scores.slice(mid).reduce((a,b)=>a+b,0)/Math.max(1, scores.length-mid);
+    growth = a2 - a1;
+  }
+  document.getElementById('weeklyAvgScore').textContent = avg === null ? '—' : avg.toFixed(1);
+  document.getElementById('bestDayScore').textContent = best === null ? '—' : best.toFixed(1);
+  document.getElementById('weeklyGrowth').textContent = growth === null ? '—' : (growth >= 0 ? '+' : '') + growth.toFixed(1);
+  document.getElementById('weeklySummary').textContent = weeklySummaryText();
+  document.getElementById('weeklyPlan').textContent = weeklyPlanText();
+  const streak = calcStreak();
+  document.getElementById('streakBox').textContent = streak ? `Сейчас серия ${streak} дня(ей). Сохраняй ритм и не пропускай фиксацию дня.` : 'Серия пока не набрана. Зафиксируй 2–3 дня подряд, чтобы появился ритм.';
+}
+
+function renderHistory() {
+  const list = document.getElementById('historyList');
+  const items = [...state.stats.callHistory].reverse();
+  document.getElementById('historyCount').textContent = `${items.length} звонков`;
+  if (!items.length) {
+    list.innerHTML = `<div class="small">Пока нет истории звонков.</div>`;
+    return;
+  }
+  list.innerHTML = items.map((x, idx) => `
+    <div class="hist-item" onclick="openAnalysis(${items.length - idx - 1})">
+      <div>
+        <div class="hist-title">${escapeHtml(x.profileName || 'Менеджер')} · ${escapeHtml(x.fileName || 'файл')}</div>
+        <div class="hist-meta">${x.date} · ${x.score}/10 · ${escapeHtml(x.role || '')}</div>
+      </div>
+      <div style="text-align:right">
+        <div class="score ${scoreClass(x.score)}">${x.score}/10</div>
+        <div class="small" style="margin-top:4px">открыть</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function scoreClass(score) {
+  score = Number(score) || 0;
+  if (score >= 7) return 'good';
+  if (score >= 5) return 'mid';
+  return 'bad';
+}
+function critClass(score){ return scoreClass(score); }
+function escapeHtml(str='') {
+  return String(str).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
+}
+
+function parseCriteria(text) {
+  const criteria = [
+    { key: 'контак', short:'Контакт', label:'Установление контакта' },
+    { key: 'потреб', short:'Потребность', label:'Выявление потребности' },
+    { key: 'презент', short:'Презентация', label:'Презентация' },
+    { key: 'возраж', short:'Возражения', label:'Работа с возражениями' },
+    { key: 'закрыт', short:'Закрытие', label:'Закрытие' }
+  ];
+  return criteria.map(c => {
+    const re = new RegExp(`${c.label}[^:]*:\\s*(\\d+(?:[\\.,]\\d+)?)\\s*\\/\\s*10`, 'i');
+    const m = text.match(re);
+    return { ...c, score: m ? parseFloat(m[1].replace(',', '.')) : 5 };
+  });
+}
+
+function renderCriteria(criteria) {
+  return criteria.map(c => `
+    <div class="crit">
+      <div class="label">${escapeHtml(c.label)}</div>
+      <div class="num ${c.score >= 7 ? 'good' : c.score >= 5 ? 'mid' : 'bad'}">${c.score}/10</div>
+    </div>
+  `).join('');
+}
+
+function openAnalysis(index) {
+  const item = state.stats.callHistory[index];
+  if (!item) return;
+  const content = `
+    <div class="analysis-hero">
+      <div>
+        <div class="small">${escapeHtml(item.date)} · ${escapeHtml(item.fileName || '')}</div>
+        <div style="font-weight:800;font-size:18px;margin-top:4px">${escapeHtml(item.profileName || 'Менеджер')} · ${item.score}/10</div>
+      </div>
+      <div class="score ${scoreClass(item.score)}">${item.score}/10</div>
+    </div>
+    <div class="criteria" style="margin:12px 0">${renderCriteria(item.criteria || [])}</div>
+    <div class="box" style="margin-bottom:12px">
+      <div class="card-head"><div class="card-title">📝 Транскрипция</div><span class="tag">from proxy</span></div>
+      <div class="transcript">${escapeHtml(item.transcript || '')}</div>
+    </div>
+    <div class="box">
+      <div class="card-head"><div class="card-title">🤖 AI-разбор</div><span class="tag">sales coach</span></div>
+      <div class="textblock">${escapeHtml(item.analysis || '')}</div>
+    </div>
+  `;
+  document.getElementById('analysisModalContent').innerHTML = content;
+  document.getElementById('analysisModal').style.display = 'flex';
+}
+
+function saveDay() {
+  if (!state.access.granted) {
+    openAccessModal();
+    return;
+  }
+  const day = {
+    date: todayISO(),
+    inboundLeads: +document.getElementById('todayLeads').value || 0,
+    inboundPayments: +document.getElementById('todaySalesIn').value || 0,
+    coldCalls: +document.getElementById('todayColdCalls').value || 0,
+    coldPayments: +document.getElementById('todaySalesCold').value || 0,
+    followUps: +document.getElementById('todayFollowUps').value || 0,
+    ownBase: +document.getElementById('todayOwnBase').value || 0
+  };
+  const existingIndex = state.stats.dayLogs.findIndex(x => x.date === day.date);
+  if (existingIndex >= 0) state.stats.dayLogs[existingIndex] = day; else state.stats.dayLogs.push(day);
+  saveState();
+  track('save_day', day);
+  renderAll();
+}
+
+function clearToday() {
+  ['todayLeads','todaySalesIn','todayColdCalls','todaySalesCold','todayFollowUps','todayOwnBase'].forEach(id => document.getElementById(id).value = 0);
+}
+
+function resetEverything() {
+  if (!confirm('Сбросить все локальные данные?')) return;
+  state.stats = { visits: 0, analyses: 0, dayLogs: [], callHistory: [] };
+  state.access = { granted: false, userId: '' };
+  saveState();
+  clearToday();
+  renderAll();
+  openAccessModal();
+}
+
+function exportBackup() {
+  const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `sales-navigator-backup-${todayISO()}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function exportHistoryJson() {
+  const blob = new Blob([JSON.stringify(state.stats.callHistory, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `call-history-${todayISO()}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function openAccessModal() {
+  document.getElementById('accessModal').style.display = 'flex';
+  document.getElementById('modalAccessCode').value = state.settings.accessCode || '';
+  document.getElementById('modalUserName').value = state.profile.name || '';
+  document.getElementById('modalUserRole').value = state.profile.role || '';
+  document.getElementById('modalUserGoal').value = state.profile.goal || '';
+}
+
+function confirmAccess() {
+  const code = (document.getElementById('modalAccessCode').value || '').trim();
+  const name = (document.getElementById('modalUserName').value || '').trim();
+  const role = (document.getElementById('modalUserRole').value || '').trim();
+  const goal = (document.getElementById('modalUserGoal').value || '').trim();
+  if (!code || code !== state.settings.accessCode) {
+    alert('Неверный код доступа');
+    return;
+  }
+  state.access.granted = true;
+  if (!state.access.userId) state.access.userId = uid();
+  state.profile.name = name || state.profile.name || 'Пользователь';
+  state.profile.role = role || state.profile.role || '';
+  state.profile.goal = goal || state.profile.goal || '';
+  saveState();
+  track('grant_access', {name: state.profile.name, role: state.profile.role});
+  document.getElementById('accessModal').style.display = 'none';
+  renderAll();
+}
+
+function saveProfile() {
+  state.profile.name = document.getElementById('profileName').value.trim();
+  state.profile.role = document.getElementById('profileRole').value.trim();
+  state.profile.goal = document.getElementById('profileGoal').value.trim();
+  if (state.profile.name) {
+    state.access.granted = true;
+    if (!state.access.userId) state.access.userId = uid();
+  }
+  saveState();
+  track('save_profile', state.profile);
+  renderAll();
+}
+
+function saveSettings() {
+  state.settings.monthPlan = +document.getElementById('monthPlan').value || state.settings.monthPlan;
+  state.settings.avgCheck = +document.getElementById('avgCheck').value || state.settings.avgCheck;
+  state.settings.conversionRate = (+document.getElementById('conversionRate').value || 0) / 100;
+  state.settings.workDays = +document.getElementById('workDays').value || state.settings.workDays;
+  state.settings.inboundShare = +document.getElementById('inboundShare').value || state.settings.inboundShare;
+  state.settings.coldShare = +document.getElementById('coldShare').value || state.settings.coldShare;
+  state.settings.trialLimit = +document.getElementById('trialLimit').value || state.settings.trialLimit;
+  state.settings.accessCode = document.getElementById('accessCode').value.trim() || state.settings.accessCode;
+  state.settings.proxyBase = document.getElementById('proxyBase').value.trim() || state.settings.proxyBase;
+  state.settings.analyticsUrl = document.getElementById('analyticsUrl').value.trim();
+  saveState();
+  renderAll();
+  alert('Настройки сохранены');
+}
+
+function fillSettings() {
+  document.getElementById('monthPlan').value = state.settings.monthPlan;
+  document.getElementById('avgCheck').value = state.settings.avgCheck;
+  document.getElementById('conversionRate').value = Math.round(state.settings.conversionRate * 100);
+  document.getElementById('workDays').value = state.settings.workDays;
+  document.getElementById('inboundShare').value = state.settings.inboundShare;
+  document.getElementById('coldShare').value = state.settings.coldShare;
+  document.getElementById('trialLimit').value = state.settings.trialLimit;
+  document.getElementById('accessCode').value = state.settings.accessCode;
+  document.getElementById('proxyBase').value = state.settings.proxyBase;
+  document.getElementById('analyticsUrl').value = state.settings.analyticsUrl || '';
 }
 
 async function analyzeCall() {
-    const apiKey = getApiKey();
-    if (!apiKey) { alert('Сначала введи и сохрани Groq API Key'); return; }
+  if (!state.access.granted) { openAccessModal(); return; }
+  const file = document.getElementById('callFile').files[0];
+  if (!file) { alert('Выбери файл звонка'); return; }
+  if (file.size > 25 * 1024 * 1024) { alert('Файл слишком большой. Максимум 25 МБ.'); return; }
 
-    const fileInput = document.getElementById('callAudioFile');
-    const file = fileInput.files[0];
-    if (!file) { alert('Выберите аудиофайл'); return; }
-    if (file.size > 25 * 1024 * 1024) { alert('Файл слишком большой. Максимум 25 МБ.'); return; }
+  const trialDone = (state.stats.analyses || 0) >= state.settings.trialLimit;
+  if (trialDone) {
+    const ok = confirm('Лимит trial исчерпан. Продолжить всё равно?');
+    if (!ok) return;
+  }
 
-    const context = document.getElementById('callContext').value.trim();
-    const loadingDiv = document.getElementById('loadingIndicator');
-    const resultDiv = document.getElementById('analysisResult');
-    const analyzeBtn = document.getElementById('analyzeCallBtn');
+  const context = document.getElementById('callContext').value.trim();
+  const name = document.getElementById('profileName').value.trim() || state.profile.name || 'Менеджер';
+  const role = document.getElementById('profileRole').value.trim() || state.profile.role || '';
+  const goal = document.getElementById('profileGoal').value.trim() || state.profile.goal || '';
 
-    loadingDiv.style.display = 'block';
-    resultDiv.style.display = 'none';
-    analyzeBtn.disabled = true;
-    document.getElementById('step3dot').className = 'step-dot active';
+  state.profile.name = name;
+  state.profile.role = role;
+  state.profile.goal = goal;
+  saveState();
 
-    try {
-        // STEP 1: Whisper transcription
-        document.getElementById('loaderText').textContent = 'Шаг 1/2: Транскрипция через Whisper...';
-        document.getElementById('loaderSubstep').textContent = 'Отправляем аудио в Groq';
+  const loader = document.getElementById('callLoader');
+  const loaderText = document.getElementById('callLoaderText');
+  const output = document.getElementById('callOutput');
+  loader.style.display = 'block';
+  output.style.display = 'none';
+  document.getElementById('analyzeCallBtn').disabled = true;
+  loaderText.textContent = 'Шаг 1/2: транскрипция аудио…';
 
-        const formData = new FormData();
-        formData.append('file', file, file.name);
-        formData.append('model', 'whisper-large-v3');
-        formData.append('language', 'ru');
-        formData.append('response_format', 'json');
+  try {
+    const fd = new FormData();
+    fd.append('file', file, file.name);
+    fd.append('model', 'whisper-large-v3');
+    fd.append('language', 'ru');
+    fd.append('response_format', 'json');
+    const base = state.settings.proxyBase.replace(/\/+$/,'');
+    const transcribeResp = await fetch(`${base}/audio/transcriptions`, {
+      method: 'POST',
+      body: fd
+    });
+    if (!transcribeResp.ok) {
+      let errText = transcribeResp.statusText;
+      try {
+        const err = await transcribeResp.json();
+        errText = err?.error?.message || JSON.stringify(err);
+      } catch(e){}
+      throw new Error(`Transcription failed: ${errText}`);
+    }
+    const transcribeData = await transcribeResp.json();
+    const transcript = (transcribeData.text || '').trim();
+    if (!transcript) throw new Error('Пустая транскрипция');
 
-        const whisperResp = await fetch(`${GROQ_API}/audio/transcriptions`, {
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${apiKey}` },
-            body: formData
-        });
+    loaderText.textContent = 'Шаг 2/2: AI разбор по технике продаж…';
+    const prompt = `
+Проанализируй звонок менеджера по продажам.
 
-        if (!whisperResp.ok) {
-            const err = await whisperResp.json();
-            throw new Error('Whisper: ' + (err.error?.message || whisperResp.status));
-        }
+КОНТЕКСТ:
+- Имя: ${name}
+- Роль: ${role}
+- Цель: ${goal || 'не указана'}
+- Доп. контекст: ${context || 'нет'}
 
-        const whisperData = await whisperResp.json();
-        const transcript = whisperData.text || '';
+ТРАНСКРИПЦИЯ:
+${transcript}
 
-        if (!transcript.trim()) throw new Error('Транскрипция пустая — проверь аудиофайл');
+Сделай ответ строго по структуре:
 
-        // STEP 2: LLaMA analysis
-        document.getElementById('loaderText').textContent = 'Шаг 2/2: AI-анализ техники продаж...';
-        document.getElementById('loaderSubstep').textContent = 'LLaMA изучает разговор';
+ОЦЕНКА ПО КРИТЕРИЯМ:
+• Установление контакта: X/10 — причина
+• Выявление потребности: X/10 — причина
+• Презентация: X/10 — причина
+• Работа с возражениями: X/10 — причина
+• Закрытие: X/10 — причина
 
-        let userPrompt = `Проанализируй этот звонок менеджера по продажам в EdTech (B2C онлайн-образование).\n\n`;
-        if (context) userPrompt += `Контекст: ${context}\n\n`;
-        userPrompt += `ТРАНСКРИПЦИЯ ЗВОНКА:\n${transcript}`;
+ОБЩАЯ ОЦЕНКА: X/10
 
-        const analysisResp = await fetch(`${GROQ_API}/chat/completions`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${apiKey}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                model: 'llama-3.3-70b-versatile',
-                max_tokens: 1500,
-                messages: [
-                    {
-                        role: 'system',
-                        content: `Ты — эксперт по технике продаж в B2C EdTech. Анализируй звонки менеджеров и давай конкретную обратную связь.
+ЧТО СДЕЛАНО ХОРОШО:
+• ...
+• ...
 
-Отвечай строго по структуре:
+ЧТО КРИТИЧЕСКИ ИСПРАВИТЬ:
+• ...
+• ...
 
-ОБЩАЯ ОЦЕНКА: [число]/10
-
-СИЛЬНЫЕ СТОРОНЫ:
-• [конкретный момент из звонка]
-• [конкретный момент]
-
-ЗОНЫ РОСТА:
-• [проблема — как исправить конкретно]
-• [проблема — как исправить]
-
-РАБОТА С ВОЗРАЖЕНИЯМИ:
-[Какие возражения были, как отработаны, что улучшить]
-
-СКРИПТ И СТРУКТУРА:
-[Соблюдал ли менеджер этапы: приветствие, выявление потребности, презентация, отработка возражений, закрытие]
+СКРИПТ НА СЛЕДУЮЩИЙ ЗВОНОК:
+• 3-5 коротких вопросов/фраз
 
 СЛЕДУЮЩИЙ ШАГ:
-[Одно конкретное действие на следующий звонок]
+• конкретное действие по клиенту
 
-Язык: русский. Будь конкретным — никаких общих фраз.`
-                    },
-                    { role: 'user', content: userPrompt }
-                ]
-            })
-        });
+Дай коротко и очень конкретно. Без воды.`;
 
-        if (!analysisResp.ok) {
-            const err = await analysisResp.json();
-            throw new Error('LLaMA: ' + (err.error?.message || analysisResp.status));
-        }
-
-        const analysisData = await analysisResp.json();
-        const analysisText = analysisData.choices?.[0]?.message?.content || '';
-
-        // Parse score
-        const scoreMatch = analysisText.match(/ОБЩАЯ ОЦЕНКА:\s*(\d+(?:\.\d+)?)\s*\/\s*10/i);
-        const score = scoreMatch ? parseFloat(scoreMatch[1]) : null;
-
-        // Render
-        document.getElementById('transcriptText').textContent = transcript;
-        document.getElementById('analysisText').textContent = analysisText;
-
-        const scoreBadge = document.getElementById('overallScore');
-        if (score !== null) {
-            scoreBadge.textContent = `${score}/10`;
-            scoreBadge.className = 'score-badge ' + (score >= 7 ? 'score-high' : score >= 5 ? 'score-mid' : 'score-low');
-        } else {
-            scoreBadge.textContent = '—';
-            scoreBadge.className = 'score-badge score-mid';
-        }
-
-        resultDiv.style.display = 'block';
-        document.getElementById('step3dot').className = 'step-dot done';
-        resultDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-    } catch (error) {
-        console.error('Ошибка:', error);
-        alert(`Ошибка: ${error.message}\n\nПроверь API-ключ и попробуй снова.`);
-        document.getElementById('step3dot').className = 'step-dot';
-    } finally {
-        loadingDiv.style.display = 'none';
-        analyzeBtn.disabled = false;
-    }
-}
-
-// ===================== TABS =====================
-function switchTab(tabId) {
-    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    const t = document.getElementById(tabId + 'Tab');
-    if (t) t.classList.add('active');
-    const b = document.querySelector(`.tab-btn[data-tab="${tabId}"]`);
-    if (b) b.classList.add('active');
-    if (tabId === 'main') renderMainUI();
-}
-
-// ===================== SETTINGS =====================
-function bindEvents() {
-    document.getElementById('openSettingsBtn').addEventListener('click', () => {
-        const s = state.settings;
-        document.getElementById('monthPlan').value = s.monthPlan;
-        document.getElementById('avgCheck').value = s.avgCheck;
-        document.getElementById('conversionRate').value = (s.conversion * 100).toFixed(1);
-        document.getElementById('workDays').value = s.workDays;
-        document.getElementById('inboundShare').value = s.inboundShare;
-        document.getElementById('coldShare').value = s.coldShare;
-        document.getElementById('settingsModal').style.display = 'flex';
+    const chatResp = await fetch(`${base}/chat/completions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        max_tokens: 1800,
+        messages: [
+          { role: 'system', content: `Ты — AI-наставник по продажам. Оценивай звонки строго и практично. Пиши по-русски.` },
+          { role: 'user', content: prompt }
+        ]
+      })
     });
-    document.getElementById('closeSettingsBtn').addEventListener('click', () => document.getElementById('settingsModal').style.display = 'none');
-    document.getElementById('saveSettingsBtn').addEventListener('click', () => {
-        state.settings.monthPlan = parseFloat(document.getElementById('monthPlan').value);
-        state.settings.avgCheck = parseFloat(document.getElementById('avgCheck').value);
-        state.settings.conversion = parseFloat(document.getElementById('conversionRate').value) / 100;
-        state.settings.workDays = parseInt(document.getElementById('workDays').value);
-        state.settings.inboundShare = parseFloat(document.getElementById('inboundShare').value);
-        state.settings.coldShare = parseFloat(document.getElementById('coldShare').value);
-        saveToLS();
-        document.getElementById('settingsModal').style.display = 'none';
-        renderMainUI();
-    });
-    document.getElementById('submitDayBtn').addEventListener('click', commitDay);
-    document.getElementById('resetDataBtn').addEventListener('click', resetAll);
-    document.getElementById('analyzeCallBtn').addEventListener('click', analyzeCall);
-    document.getElementById('saveApiKeyBtn').addEventListener('click', saveApiKey);
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.addEventListener('click', () => switchTab(btn.dataset.tab)));
-    window.addEventListener('click', e => { if (e.target === document.getElementById('settingsModal')) document.getElementById('settingsModal').style.display = 'none'; });
-
-    const savedKey = getApiKey();
-    if (savedKey) {
-        document.getElementById('apiKeyInput').value = savedKey;
-        document.getElementById('apiKeySavedMsg').style.display = 'block';
+    if (!chatResp.ok) {
+      let errText = chatResp.statusText;
+      try {
+        const err = await chatResp.json();
+        errText = err?.error?.message || JSON.stringify(err);
+      } catch(e){}
+      throw new Error(`Analysis failed: ${errText}`);
     }
-    updateStepDots();
+    const chatData = await chatResp.json();
+    const analysis = chatData?.choices?.[0]?.message?.content || '';
+
+    const scoreMatch = analysis.match(/ОБЩАЯ ОЦЕНКА:\s*(\d+(?:[.,]\d+)?)\s*\/\s*10/i);
+    const score = scoreMatch ? parseFloat(scoreMatch[1].replace(',', '.')) : 5;
+    const criteria = parseCriteria(analysis);
+
+    const result = {
+      date: todayISO(),
+      fileName: file.name,
+      profileName: name,
+      role,
+      goal,
+      score,
+      criteria,
+      transcript,
+      analysis
+    };
+
+    state.stats.analyses = (state.stats.analyses || 0) + 1;
+    state.stats.callHistory.push(result);
+    currentCallResult = result;
+    saveState();
+    track('analyze_call', {score, fileName: file.name, user: name});
+
+    document.getElementById('transcriptText').textContent = transcript;
+    document.getElementById('analysisText').textContent = analysis;
+    document.getElementById('callScore').textContent = score.toFixed(1) + '/10';
+    document.getElementById('callScore').className = 'score ' + scoreClass(score);
+    document.getElementById('criteriaGrid').innerHTML = renderCriteria(criteria);
+    document.getElementById('callOutput').style.display = 'block';
+
+    renderAll();
+    document.getElementById('callOutput').scrollIntoView({behavior:'smooth', block:'start'});
+  } catch (err) {
+    console.error(err);
+    alert(err.message || 'Ошибка анализа');
+  } finally {
+    loader.style.display = 'none';
+    document.getElementById('analyzeCallBtn').disabled = false;
+  }
 }
 
-// ===================== INIT =====================
-loadFromLS();
-bindEvents();
-renderMainUI();
-document.getElementById('todayDateSpan').innerText = new Date().toLocaleDateString('ru-RU');
-document.getElementById('dateBadge').innerHTML = `📅 ${new Date().toLocaleDateString('ru-RU')}`;
+function renderAll() {
+  updateAccessUI();
+  renderDashboard();
+  renderHistory();
+  document.getElementById('todayBadge').textContent = new Date().toLocaleDateString('ru-RU');
+}
+
+function syncInputsFromState() {
+  document.getElementById('profileName').value = state.profile.name || '';
+  document.getElementById('profileRole').value = state.profile.role || '';
+  document.getElementById('profileGoal').value = state.profile.goal || '';
+  fillSettings();
+}
+
+function registerPWA() {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js').catch(()=>{});
+  }
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    const btn = document.getElementById('installBtn');
+    btn.style.display = 'inline-flex';
+    btn.onclick = async () => {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+      deferredPrompt = null;
+      btn.style.display = 'none';
+    };
+  });
+}
+
+function setupEvents() {
+  document.querySelectorAll('.tab-btn').forEach(btn => btn.addEventListener('click', () => setTab(btn.dataset.tab)));
+  document.getElementById('saveDayBtn').addEventListener('click', saveDay);
+  document.getElementById('clearTodayBtn').addEventListener('click', clearToday);
+  document.getElementById('resetStatsBtn').addEventListener('click', resetEverything);
+  document.getElementById('analyzeCallBtn').addEventListener('click', analyzeCall);
+  document.getElementById('closeAnalysisBtn').addEventListener('click', () => document.getElementById('analysisModal').style.display = 'none');
+  document.getElementById('analysisModal').addEventListener('click', (e) => {
+    if (e.target.id === 'analysisModal') e.currentTarget.style.display = 'none';
+  });
+  document.getElementById('clearHistoryBtn').addEventListener('click', () => {
+    if (!confirm('Очистить историю анализов?')) return;
+    state.stats.callHistory = [];
+    state.stats.analyses = 0;
+    saveState();
+    renderAll();
+  });
+  document.getElementById('exportJsonBtn').addEventListener('click', exportBackup);
+  document.getElementById('backupBtn').addEventListener('click', exportBackup);
+  document.getElementById('saveProfileBtn').addEventListener('click', saveProfile);
+  document.getElementById('saveSettingsBtn').addEventListener('click', saveSettings);
+  document.getElementById('resetLocalBtn').addEventListener('click', resetEverything);
+  document.getElementById('activateAccessBtn').addEventListener('click', openAccessModal);
+  document.getElementById('confirmAccessBtn').addEventListener('click', confirmAccess);
+}
+
+function openAccessIfNeeded() {
+  if (!state.access.granted) {
+    document.getElementById('accessModal').style.display = 'flex';
+  } else {
+    document.getElementById('accessModal').style.display = 'none';
+  }
+}
+
+function init() {
+  loadState();
+  if (!state.access.userId) state.access.userId = uid();
+  state.stats.visits = (state.stats.visits || 0) + 1;
+  saveState();
+  syncInputsFromState();
+  setupEvents();
+  registerPWA();
+  updateAccessUI();
+  renderAll();
+  openAccessIfNeeded();
+  track('visit', { path: location.pathname });
+}
+
+init();
 </script>
-
 </body>
 </html>
