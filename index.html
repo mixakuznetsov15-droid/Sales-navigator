@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Sales Navigator — Лид‑план + AI‑разбор звонков</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0b1120;
+            font-family: 'Segoe UI', 'Inter', system-ui, sans-serif;
+            color: #eef2ff;
+            padding: 20px 16px 40px;
+        }
+        .container { max-width: 700px; margin: 0 auto; }
+        .tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+            background: #111827;
+            border-radius: 48px;
+            padding: 6px;
+        }
+        .tab-btn {
+            flex: 1;
+            background: transparent;
+            border: none;
+            padding: 10px 0;
+            border-radius: 40px;
+            font-weight: 600;
+            color: #94a3b8;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 13px;
+        }
+        .tab-btn.active { background: #3b82f6; color: white; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .card {
+            background: #111827;
+            border-radius: 28px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #1f2937;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .card-title {
+            font-size: 18px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #a78bfa, #3b82f6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .badge {
+            background: #1e293b;
+            padding: 6px 14px;
+            border-radius: 40px;
+            font-size: 12px;
+            font-weight: 500;
+            color: #94a3b8;
+        }
+        .goals-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 12px;
+        }
+        .goal-card {
+            background: #0f172a;
+            border-radius: 24px;
+            padding: 16px;
+            text-align: center;
+            border: 1px solid #334155;
+        }
+        .goal-number { font-size: 36px; font-weight: 800; color: #facc15; }
+        .goal-label { font-size: 12px; color: #94a3b8; margin-bottom: 6px; }
+        .goal-sub { font-size: 11px; color: #475569; margin-top: 4px; }
+        .progress-bar-bg {
+            background: #1e293b;
+            border-radius: 60px;
+            height: 12px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            background: linear-gradient(90deg, #3b82f6, #a855f7);
+            width: 0%;
+            height: 100%;
+            transition: width 0.5s ease;
+        }
+        .input-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 16px 0;
+        }
+        .input-group {
+            flex: 1;
+            min-width: 120px;
+        }
+        .input-group label {
+            font-size: 11px;
+            color: #94a3b8;
+            margin-bottom: 6px;
+            display: block;
+        }
+        .input-group input, .input-group textarea {
+            width: 100%;
+            background: #0f172a;
+            border: 1px solid #334155;
+            padding: 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            color: #facc15;
+            outline: none;
+        }
+        .input-group input[type="file"] {
+            color: #94a3b8;
+            cursor: pointer;
+            padding: 10px 12px;
+        }
+        button {
+            background: #3b82f6;
+            border: none;
+            padding: 12px 16px;
+            border-radius: 40px;
+            font-weight: 700;
+            color: white;
+            cursor: pointer;
+            width: 100%;
+            transition: 0.2s;
+        }
+        button:hover { background: #2563eb; transform: translateY(-2px); }
+        button:disabled { background: #334155; color: #64748b; cursor: not-allowed; transform: none; }
+        .btn-reset { background: #ef4444; margin-top: 8px; }
+        .btn-reset:hover { background: #dc2626; }
+        .stats-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 12px;
+        }
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px dashed #1e293b;
+            padding-bottom: 8px;
+        }
+        .week-stats {
+            background: #0f172a;
+            border-radius: 20px;
+            padding: 16px;
+            margin-top: 12px;
+        }
+        .week-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            font-size: 13px;
+        }
+
+```
+    /* API KEY */
+    .api-key-notice {
+        background: #0f172a;
+        border: 1px solid #334155;
+        border-radius: 20px;
+        padding: 16px;
+        margin-bottom: 16px;
+        font-size: 13px;
+        color: #94a3b8;
+        line-height: 1.6;
+    }
+    .api-key-notice a { color: #3b82f6; }
+    .api-key-input-row {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        margin-top: 10px;
+    }
+    .api-key-input-row input {
+        flex: 1;
+        background: #0f172a;
+        border: 1px solid #334155;
+        padding: 10px 14px;
+        border-radius: 20px;
+        font-size: 13px;
+        color: #facc15;
+        outline: none;
+        font-family: monospace;
+    }
+    .api-key-input-row button { width: auto; padding: 10px 18px; font-size: 13px; }
+    .api-key-saved { color: #10b981; font-size: 12px; margin-top: 6px; }
+
+    /* STEPS */
+    .step-indicator {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 16px;
+        align-items: center;
+        font-size: 13px;
+        color: #64748b;
+    }
+    .step-dot {
+        width: 28px; height: 28px;
+        border-radius: 50%;
+        background: #1e293b;
+        display: flex; align-items: center; justify-content: center;
+        font-weight: 700; font-size: 12px;
+        flex-shrink: 0;
+    }
+    .step-dot.active { background: #3b82f6; color: white; }
+    .step-dot.done { background: #10b981; color: white; }
+    .step-arrow { color: #334155; }
+
+    /* ANALYSIS */
+    .analysis-result {
+        background: #0f172a;
+        border-radius: 20px;
+        padding: 20px;
+        margin-top: 16px;
+        border-left: 4px solid #10b981;
+    }
+    .analysis-section { margin-bottom: 20px; }
+    .analysis-section-title {
+        font-size: 12px;
+        font-weight: 700;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 10px;
+    }
+    .analysis-section-body {
+        font-size: 14px;
+        line-height: 1.7;
+        color: #cbd5e1;
+        white-space: pre-wrap;
+    }
+    .transcript-box {
+        max-height: 220px;
+        overflow-y: auto;
+        background: #020617;
+        border-radius: 14px;
+        padding: 14px;
+        font-size: 13px;
+        line-height: 1.7;
+        color: #94a3b8;
+        white-space: pre-wrap;
+    }
+    .score-badge {
+        display: inline-block;
+        padding: 6px 16px;
+        border-radius: 40px;
+        font-weight: 800;
+        font-size: 18px;
+    }
+    .score-high { background: #064e3b; color: #34d399; }
+    .score-mid  { background: #451a03; color: #fb923c; }
+    .score-low  { background: #450a0a; color: #f87171; }
+
+    /* LOADER */
+    .loader-wrap {
+        display: none;
+        text-align: center;
+        margin-top: 24px;
+    }
+    .loader {
+        display: inline-block;
+        width: 32px; height: 32px;
+        border: 3px solid #334155;
+        border-top-color: #3b82f6;
+        border-radius: 50%;
+        animation: spin 0.7s linear infinite;
+    }
+    .loader-text { margin-top: 10px; font-size: 13px; color: #64748b; }
+    .loader-substep { margin-top: 6px; font-size: 12px; color: #475569; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* SETTINGS */
+    .setting-row { margin: 12px 0; }
+    .setting-row label { display: block; font-size: 12px; color: #94a3b8; margin-bottom: 6px; }
+    .setting-row input {
+        width: 100%;
+        background: #0f172a;
+        border: 1px solid #334155;
+        padding: 10px 14px;
+        border-radius: 16px;
+        font-size: 14px;
+        color: #facc15;
+        outline: none;
+    }
+
+    @media (max-width: 500px) { .goals-grid { grid-template-columns: 1fr; } }
+</style>
+```
+
+</head>
+<body>
+<div class="container">
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="main">📊 План продаж</button>
+        <button class="tab-btn" data-tab="ai-call">🎙️ Анализ звонка</button>
+    </div>
+
+```
+<!-- Вкладка "План продаж" -->
+<div id="mainTab" class="tab-content active">
+    <div class="card" style="padding: 16px 20px;">
+        <div class="card-header">
+            <span class="card-title">🎯 Sales Navigator</span>
+            <button id="openSettingsBtn" style="width: auto; background: #1e293b; padding: 6px 14px;">⚙️ Настройки</button>
+        </div>
+        <div class="badge" id="dateBadge">сегодня, ...</div>
+    </div>
+
+    <div class="goals-grid">
+        <div class="goal-card">
+            <div class="goal-label">📥 Входящие лиды (цель)</div>
+            <div class="goal-number" id="dailyInboundGoal">0</div>
+            <div class="goal-sub">лидов / день</div>
+        </div>
+        <div class="goal-card">
+            <div class="goal-label">❄️ Холодные контакты</div>
+            <div class="goal-number" id="dailyColdGoal">0</div>
+            <div class="goal-sub">звонков / день</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><span class="card-title">💰 План выручки</span><span id="planPercent" class="badge">0%</span></div>
+        <div class="progress-bar-bg"><div class="progress-fill" id="revenueFill"></div></div>
+        <div class="stats-list">
+            <div class="stat-item"><span>🎯 Месячный план</span><strong id="monthPlanSpan">— ₽</strong></div>
+            <div class="stat-item"><span>✅ Факт выручки</span><strong id="factRevenueSpan">0 ₽</strong></div>
+            <div class="stat-item"><span>⚡ Осталось</span><strong id="remainRevenueSpan">— ₽</strong></div>
+        </div>
+        <div style="margin-top: 20px;">
+            <div class="card-header" style="margin-bottom: 8px;"><span class="card-title">📊 Входящие лиды</span><span id="inboundPercent" class="badge">0%</span></div>
+            <div class="progress-bar-bg"><div class="progress-fill" id="inboundLeadsFill" style="background: linear-gradient(90deg,#10b981,#34d399);"></div></div>
+            <div class="stats-list">
+                <div class="stat-item"><span>📥 Нужно лидов за месяц</span><strong id="totalInboundNeededSpan">0</strong></div>
+                <div class="stat-item"><span>✅ Принято лидов</span><strong id="totalInboundLeadsFact">0</strong></div>
+            </div>
+        </div>
+        <div style="margin-top: 20px;">
+            <div class="card-header"><span class="card-title">📞 Холодные контакты</span><span id="coldPercent" class="badge">0%</span></div>
+            <div class="progress-bar-bg"><div class="progress-fill" id="coldContactsFill" style="background: linear-gradient(90deg,#f59e0b,#f97316);"></div></div>
+            <div class="stats-list">
+                <div class="stat-item"><span>❄️ Нужно контактов</span><strong id="totalColdNeededSpan">0</strong></div>
+                <div class="stat-item"><span>✅ Сделано контактов</span><strong id="totalColdContactsFact">0</strong></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><span class="card-title">📆 Сегодняшние результаты</span><span id="todayDateSpan" class="badge"></span></div>
+        <div class="input-row">
+            <div class="input-group"><label>📥 Входящие лиды сегодня</label><input type="number" id="inboundLeadsToday" value="0"></div>
+            <div class="input-group"><label>💰 Оплаты из входящих</label><input type="number" id="inboundPayments" value="0"></div>
+        </div>
+        <div class="input-row">
+            <div class="input-group"><label>❄️ Оплаты с холодных</label><input type="number" id="coldPayments" value="0"></div>
+            <div class="input-group"><label>📞 Холодных контактов</label><input type="number" id="coldCalls" value="0"></div>
+        </div>
+        <button id="submitDayBtn">✅ Зафиксировать день</button>
+        <button id="resetDataBtn" class="btn-reset">🗑️ Сбросить все данные</button>
+        <div id="dailyStatusBlock" style="margin-top: 12px; background:#0f172a; padding: 12px; border-radius: 20px;"></div>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><span class="card-title">🏆 Рейтинг эффективности</span></div>
+        <div style="background:#02061780; border-radius:60px; padding:8px 16px; display:flex; justify-content:space-between;">
+            <span>📊 Твой уровень:</span>
+            <strong id="levelName" style="background:linear-gradient(135deg,#eab308,#f97316); -webkit-background-clip:text; background-clip:text; color:transparent;">Новичок</strong>
+        </div>
+        <div class="stats-list">
+            <div class="stat-item"><span>🏅 Оплат из входящих</span><strong id="totalInboundPay">0</strong></div>
+            <div class="stat-item"><span>❄️ Холодных оплат</span><strong id="totalColdPay">0</strong></div>
+            <div class="stat-item"><span>🎯 Выполнение дневной цели</span><strong id="dailyInboundPct">0%</strong></div>
+            <div class="stat-item"><span>📞 Холодные контакты / цель</span><strong id="coldCallsRatio">0 / 0</strong></div>
+        </div>
+        <div class="week-stats">
+            <div style="font-size:13px; font-weight:600; margin-bottom:8px;">📅 Цели на неделю</div>
+            <div id="weekTargets"></div>
+            <div style="font-size:13px; font-weight:600; margin-top:12px; margin-bottom:8px;">📈 Выполнение по дням</div>
+            <div id="weekDaysProgress"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Вкладка "Анализ звонка" -->
+<div id="ai-callTab" class="tab-content">
+    <div class="card">
+        <div class="card-header">
+            <span class="card-title">🎙️ Анализ звонка через AI</span>
+            <span class="badge">Groq Whisper + LLaMA</span>
+        </div>
+
+        <!-- Step indicator -->
+        <div class="step-indicator">
+            <div class="step-dot" id="step1dot">1</div>
+            <span>Ключ</span>
+            <span class="step-arrow">→</span>
+            <div class="step-dot" id="step2dot">2</div>
+            <span>Аудио</span>
+            <span class="step-arrow">→</span>
+            <div class="step-dot" id="step3dot">3</div>
+            <span>Анализ</span>
+        </div>
+
+        <!-- API Key -->
+        <div class="api-key-notice">
+            <strong>🔑 Groq API Key</strong> (бесплатно, карта не нужна)<br>
+            Получи на <a href="https://console.groq.com" target="_blank">console.groq.com</a> → API Keys → Create API Key → No expiration<br>
+            Ключ хранится только в твоём браузере.
+            <div class="api-key-input-row">
+                <input type="password" id="apiKeyInput" placeholder="gsk_...">
+                <button id="saveApiKeyBtn" style="background:#10b981;">Сохранить</button>
+            </div>
+            <div id="apiKeySavedMsg" class="api-key-saved" style="display:none;">✅ Ключ сохранён</div>
+        </div>
+
+        <!-- Audio upload -->
+        <div class="input-group" style="margin-bottom: 16px;">
+            <label>📁 Аудиофайл звонка (MP3, WAV, OGG, M4A — до 25 МБ)</label>
+            <input type="file" id="callAudioFile" accept="audio/*">
+        </div>
+
+        <!-- Context -->
+        <div class="input-group" style="margin-bottom: 16px;">
+            <label>📋 Контекст (необязательно): продукт, этап, что хотите улучшить</label>
+            <textarea id="callContext" rows="2" style="color:#94a3b8; font-size:13px; resize:vertical;" placeholder="Например: онлайн-курс по финансам, холодный лид, хочу проверить отработку возражений"></textarea>
+        </div>
+
+        <button id="analyzeCallBtn">🧠 Транскрибировать и проанализировать</button>
+
+        <!-- Loading -->
+        <div class="loader-wrap" id="loadingIndicator">
+            <div class="loader"></div>
+            <div class="loader-text" id="loaderText">Обработка...</div>
+            <div class="loader-substep" id="loaderSubstep"></div>
+        </div>
+
+        <!-- Result -->
+        <div id="analysisResult" style="display: none; margin-top: 20px;">
+            <div class="analysis-result">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <strong style="font-size: 16px;">📊 Результаты анализа</strong>
+                    <span class="score-badge" id="overallScore">—</span>
+                </div>
+
+                <div class="analysis-section">
+                    <div class="analysis-section-title">📝 Транскрипция (Whisper)</div>
+                    <div class="transcript-box" id="transcriptText"></div>
+                </div>
+
+                <div class="analysis-section">
+                    <div class="analysis-section-title">🤖 AI-разбор (LLaMA)</div>
+                    <div class="analysis-section-body" id="analysisText"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="badge" style="margin-top: 16px; display: inline-block;">
+            💡 Whisper транскрибирует → LLaMA анализирует технику продаж
+        </div>
+    </div>
+</div>
+```
+
+</div>
+
+<!-- Настройки -->
+
+<div id="settingsModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); backdrop-filter:blur(4px); justify-content:center; align-items:center; z-index:1000;">
+    <div style="background:#111827; max-width:460px; width:90%; border-radius:32px; padding:24px; max-height:90vh; overflow-y:auto;">
+        <h3 style="margin-bottom:16px;">⚙️ Настройки месяца</h3>
+        <div class="setting-row"><label>💰 Месячный план (₽)</label><input type="number" id="monthPlan" value="1750000"></div>
+        <div class="setting-row"><label>💵 Средний чек (₽)</label><input type="number" id="avgCheck" value="107000"></div>
+        <div class="setting-row"><label>📊 Конверсия %</label><input type="number" id="conversionRate" value="6"></div>
+        <div class="setting-row"><label>📅 Рабочих дней</label><input type="number" id="workDays" value="22"></div>
+        <div class="setting-row"><label>🎯 Доля из входящих (%)</label><input type="number" id="inboundShare" value="70"></div>
+        <div class="setting-row"><label>❄️ Доля из холодных (%)</label><input type="number" id="coldShare" value="25"></div>
+        <button id="saveSettingsBtn" style="margin-top:10px;">Сохранить</button>
+        <button id="closeSettingsBtn" style="background:#334155; margin-top:8px;">Закрыть</button>
+    </div>
+</div>
+
+<script>
+// ===================== SALES MODULE =====================
+let state = {
+    settings: { monthPlan: 1750000, avgCheck: 107000, conversion: 0.06, workDays: 22, inboundShare: 70, coldShare: 25 },
+    totalInboundLeads: 0, totalInboundPayments: 0, totalColdPayments: 0, totalColdContacts: 0, dailyLog: []
+};
+
+function loadFromLS() {
+    try {
+        const s = localStorage.getItem('salesNavigator');
+        if (s) {
+            const p = JSON.parse(s);
+            if (p.settings) state.settings = { ...state.settings, ...p.settings };
+            ['totalInboundLeads','totalInboundPayments','totalColdPayments','totalColdContacts'].forEach(k => { if (p[k] !== undefined) state[k] = p[k]; });
+            if (p.dailyLog) state.dailyLog = p.dailyLog;
+        }
+    } catch(e) {}
+}
+
+function saveToLS() {
+    localStorage.setItem('salesNavigator', JSON.stringify(state));
+}
+
+function computeGoals() {
+    const s = state.settings;
+    const inbR = s.monthPlan * (s.inboundShare / 100);
+    const coldR = s.monthPlan * (s.coldShare / 100);
+    return {
+        dailyInboundLeads: Math.ceil((inbR / s.avgCheck / s.conversion) / s.workDays),
+        dailyColdContacts: Math.ceil((coldR / s.avgCheck / s.conversion) / s.workDays),
+        totalInboundLeadsNeeded: Math.ceil(inbR / s.avgCheck / s.conversion),
+        totalColdLeadsNeeded: Math.ceil(coldR / s.avgCheck / s.conversion)
+    };
+}
+
+function getCurrentRevenue() {
+    return (state.totalInboundPayments + state.totalColdPayments) * state.settings.avgCheck;
+}
+
+function commitDay() {
+    const il = parseInt(document.getElementById('inboundLeadsToday').value) || 0;
+    const ip = parseInt(document.getElementById('inboundPayments').value) || 0;
+    const cp = parseInt(document.getElementById('coldPayments').value) || 0;
+    const cc = parseInt(document.getElementById('coldCalls').value) || 0;
+    if (!il && !ip && !cp && !cc) return alert('Введите данные');
+    const today = new Date().toISOString().slice(0,10);
+    const ex = state.dailyLog.find(d => d.date === today);
+    if (ex) {
+        state.totalInboundLeads -= ex.inboundLeads || 0;
+        state.totalInboundPayments -= ex.inboundPayments || 0;
+        state.totalColdPayments -= ex.coldPayments || 0;
+        state.totalColdContacts -= ex.coldCalls || 0;
+        state.dailyLog = state.dailyLog.filter(d => d.date !== today);
+    }
+    state.totalInboundLeads += il;
+    state.totalInboundPayments += ip;
+    state.totalColdPayments += cp;
+    state.totalColdContacts += cc;
+    state.dailyLog.push({ date: today, inboundLeads: il, inboundPayments: ip, coldPayments: cp, coldCalls: cc });
+    saveToLS();
+    ['inboundLeadsToday','inboundPayments','coldPayments','coldCalls'].forEach(id => document.getElementById(id).value = '0');
+    renderMainUI();
+    alert('✅ День зафиксирован');
+}
+
+function resetAll() {
+    if (!confirm('Сбросить всю статистику?')) return;
+    state.totalInboundLeads = state.totalInboundPayments = state.totalColdPayments = state.totalColdContacts = 0;
+    state.dailyLog = [];
+    saveToLS();
+    renderMainUI();
+}
+
+function renderMainUI() {
+    const g = computeGoals();
+    const factRev = getCurrentRevenue();
+    const prog = Math.min(100, (factRev / state.settings.monthPlan) * 100);
+    const inbPct = g.totalInboundLeadsNeeded ? (state.totalInboundLeads / g.totalInboundLeadsNeeded) * 100 : 0;
+    const coldPct = g.totalColdLeadsNeeded ? (state.totalColdContacts / g.totalColdLeadsNeeded) * 100 : 0;
+
+    document.getElementById('dailyInboundGoal').innerText = g.dailyInboundLeads;
+    document.getElementById('dailyColdGoal').innerText = g.dailyColdContacts;
+    document.getElementById('monthPlanSpan').innerHTML = state.settings.monthPlan.toLocaleString() + ' ₽';
+    document.getElementById('factRevenueSpan').innerHTML = factRev.toLocaleString() + ' ₽';
+    document.getElementById('remainRevenueSpan').innerHTML = Math.max(0, state.settings.monthPlan - factRev).toLocaleString() + ' ₽';
+    document.getElementById('planPercent').innerHTML = prog.toFixed(1) + '%';
+    document.getElementById('revenueFill').style.width = prog + '%';
+    document.getElementById('inboundPercent').innerHTML = inbPct.toFixed(1) + '%';
+    document.getElementById('inboundLeadsFill').style.width = Math.min(100, inbPct) + '%';
+    document.getElementById('totalInboundNeededSpan').innerHTML = g.totalInboundLeadsNeeded;
+    document.getElementById('totalInboundLeadsFact').innerHTML = state.totalInboundLeads;
+    document.getElementById('coldPercent').innerHTML = coldPct.toFixed(1) + '%';
+    document.getElementById('coldContactsFill').style.width = Math.min(100, coldPct) + '%';
+    document.getElementById('totalColdNeededSpan').innerHTML = g.totalColdLeadsNeeded;
+    document.getElementById('totalColdContactsFact').innerHTML = state.totalColdContacts;
+    document.getElementById('totalInboundPay').innerHTML = state.totalInboundPayments;
+    document.getElementById('totalColdPay').innerHTML = state.totalColdPayments;
+    document.getElementById('dailyInboundPct').innerHTML = inbPct.toFixed(1) + '%';
+    document.getElementById('coldCallsRatio').innerHTML = `${state.totalColdContacts} / ${g.totalColdLeadsNeeded}`;
+
+    let level = 'Новичок';
+    if (prog >= 100) level = '👑 Легенда';
+    else if (prog >= 75) level = '⚡ Мастер';
+    else if (prog >= 50) level = '🚀 Профи';
+    else if (prog >= 25) level = '⚔️ Боец';
+    document.getElementById('levelName').innerHTML = level;
+
+    const today = new Date().toISOString().slice(0,10);
+    const tl = state.dailyLog.find(d => d.date === today);
+    let msg = tl
+        ? ((tl.inboundLeads >= g.dailyInboundLeads && tl.coldCalls >= g.dailyColdContacts)
+            ? '🏅 Молодец! Дневная норма выполнена!'
+            : `📊 Сегодня: лиды ${tl.inboundLeads}/${g.dailyInboundLeads}, контакты ${tl.coldCalls}/${g.dailyColdContacts}`)
+        : '⚡ Внеси данные за сегодня';
+    document.getElementById('dailyStatusBlock').innerHTML = `<div>${msg}</div>`;
+    document.getElementById('weekTargets').innerHTML = `<div class="week-row">К концу недели: лидов ~${g.dailyInboundLeads * 5}, контактов ~${g.dailyColdContacts * 5}</div>`;
+    document.getElementById('weekDaysProgress').innerHTML = `<div class="week-row">✅ Следи за ежедневными целями, чтобы выйти на план.</div>`;
+}
+
+// ===================== GROQ AI ANALYSIS =====================
+const GROQ_API = 'https://api.groq.com/openai/v1';
+
+function getApiKey() { return localStorage.getItem('groqApiKey') || ''; }
+
+function saveApiKey() {
+    const key = document.getElementById('apiKeyInput').value.trim();
+    if (!key.startsWith('gsk_')) { alert('Ключ должен начинаться с "gsk_"'); return; }
+    localStorage.setItem('groqApiKey', key);
+    document.getElementById('apiKeySavedMsg').style.display = 'block';
+    updateStepDots();
+    setTimeout(() => document.getElementById('apiKeySavedMsg').style.display = 'none', 3000);
+}
+
+function updateStepDots() {
+    const hasKey = !!getApiKey();
+    document.getElementById('step1dot').className = 'step-dot ' + (hasKey ? 'done' : 'active');
+    document.getElementById('step2dot').className = 'step-dot ' + (hasKey ? 'active' : '');
+}
+
+async function analyzeCall() {
+    const apiKey = getApiKey();
+    if (!apiKey) { alert('Сначала введи и сохрани Groq API Key'); return; }
+
+    const fileInput = document.getElementById('callAudioFile');
+    const file = fileInput.files[0];
+    if (!file) { alert('Выберите аудиофайл'); return; }
+    if (file.size > 25 * 1024 * 1024) { alert('Файл слишком большой. Максимум 25 МБ.'); return; }
+
+    const context = document.getElementById('callContext').value.trim();
+    const loadingDiv = document.getElementById('loadingIndicator');
+    const resultDiv = document.getElementById('analysisResult');
+    const analyzeBtn = document.getElementById('analyzeCallBtn');
+
+    loadingDiv.style.display = 'block';
+    resultDiv.style.display = 'none';
+    analyzeBtn.disabled = true;
+    document.getElementById('step3dot').className = 'step-dot active';
+
+    try {
+        // STEP 1: Whisper transcription
+        document.getElementById('loaderText').textContent = 'Шаг 1/2: Транскрипция через Whisper...';
+        document.getElementById('loaderSubstep').textContent = 'Отправляем аудио в Groq';
+
+        const formData = new FormData();
+        formData.append('file', file, file.name);
+        formData.append('model', 'whisper-large-v3');
+        formData.append('language', 'ru');
+        formData.append('response_format', 'json');
+
+        const whisperResp = await fetch(`${GROQ_API}/audio/transcriptions`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${apiKey}` },
+            body: formData
+        });
+
+        if (!whisperResp.ok) {
+            const err = await whisperResp.json();
+            throw new Error('Whisper: ' + (err.error?.message || whisperResp.status));
+        }
+
+        const whisperData = await whisperResp.json();
+        const transcript = whisperData.text || '';
+
+        if (!transcript.trim()) throw new Error('Транскрипция пустая — проверь аудиофайл');
+
+        // STEP 2: LLaMA analysis
+        document.getElementById('loaderText').textContent = 'Шаг 2/2: AI-анализ техники продаж...';
+        document.getElementById('loaderSubstep').textContent = 'LLaMA изучает разговор';
+
+        let userPrompt = `Проанализируй этот звонок менеджера по продажам в EdTech (B2C онлайн-образование).\n\n`;
+        if (context) userPrompt += `Контекст: ${context}\n\n`;
+        userPrompt += `ТРАНСКРИПЦИЯ ЗВОНКА:\n${transcript}`;
+
+        const analysisResp = await fetch(`${GROQ_API}/chat/completions`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${apiKey}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                model: 'llama-3.3-70b-versatile',
+                max_tokens: 1500,
+                messages: [
+                    {
+                        role: 'system',
+                        content: `Ты — эксперт по технике продаж в B2C EdTech. Анализируй звонки менеджеров и давай конкретную обратную связь.
+
+Отвечай строго по структуре:
+
+ОБЩАЯ ОЦЕНКА: [число]/10
+
+СИЛЬНЫЕ СТОРОНЫ:
+• [конкретный момент из звонка]
+• [конкретный момент]
+
+ЗОНЫ РОСТА:
+• [проблема — как исправить конкретно]
+• [проблема — как исправить]
+
+РАБОТА С ВОЗРАЖЕНИЯМИ:
+[Какие возражения были, как отработаны, что улучшить]
+
+СКРИПТ И СТРУКТУРА:
+[Соблюдал ли менеджер этапы: приветствие, выявление потребности, презентация, отработка возражений, закрытие]
+
+СЛЕДУЮЩИЙ ШАГ:
+[Одно конкретное действие на следующий звонок]
+
+Язык: русский. Будь конкретным — никаких общих фраз.`
+                    },
+                    { role: 'user', content: userPrompt }
+                ]
+            })
+        });
+
+        if (!analysisResp.ok) {
+            const err = await analysisResp.json();
+            throw new Error('LLaMA: ' + (err.error?.message || analysisResp.status));
+        }
+
+        const analysisData = await analysisResp.json();
+        const analysisText = analysisData.choices?.[0]?.message?.content || '';
+
+        // Parse score
+        const scoreMatch = analysisText.match(/ОБЩАЯ ОЦЕНКА:\s*(\d+(?:\.\d+)?)\s*\/\s*10/i);
+        const score = scoreMatch ? parseFloat(scoreMatch[1]) : null;
+
+        // Render
+        document.getElementById('transcriptText').textContent = transcript;
+        document.getElementById('analysisText').textContent = analysisText;
+
+        const scoreBadge = document.getElementById('overallScore');
+        if (score !== null) {
+            scoreBadge.textContent = `${score}/10`;
+            scoreBadge.className = 'score-badge ' + (score >= 7 ? 'score-high' : score >= 5 ? 'score-mid' : 'score-low');
+        } else {
+            scoreBadge.textContent = '—';
+            scoreBadge.className = 'score-badge score-mid';
+        }
+
+        resultDiv.style.display = 'block';
+        document.getElementById('step3dot').className = 'step-dot done';
+        resultDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    } catch (error) {
+        console.error('Ошибка:', error);
+        alert(`Ошибка: ${error.message}\n\nПроверь API-ключ и попробуй снова.`);
+        document.getElementById('step3dot').className = 'step-dot';
+    } finally {
+        loadingDiv.style.display = 'none';
+        analyzeBtn.disabled = false;
+    }
+}
+
+// ===================== TABS =====================
+function switchTab(tabId) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    const t = document.getElementById(tabId + 'Tab');
+    if (t) t.classList.add('active');
+    const b = document.querySelector(`.tab-btn[data-tab="${tabId}"]`);
+    if (b) b.classList.add('active');
+    if (tabId === 'main') renderMainUI();
+}
+
+// ===================== SETTINGS =====================
+function bindEvents() {
+    document.getElementById('openSettingsBtn').addEventListener('click', () => {
+        const s = state.settings;
+        document.getElementById('monthPlan').value = s.monthPlan;
+        document.getElementById('avgCheck').value = s.avgCheck;
+        document.getElementById('conversionRate').value = (s.conversion * 100).toFixed(1);
+        document.getElementById('workDays').value = s.workDays;
+        document.getElementById('inboundShare').value = s.inboundShare;
+        document.getElementById('coldShare').value = s.coldShare;
+        document.getElementById('settingsModal').style.display = 'flex';
+    });
+    document.getElementById('closeSettingsBtn').addEventListener('click', () => document.getElementById('settingsModal').style.display = 'none');
+    document.getElementById('saveSettingsBtn').addEventListener('click', () => {
+        state.settings.monthPlan = parseFloat(document.getElementById('monthPlan').value);
+        state.settings.avgCheck = parseFloat(document.getElementById('avgCheck').value);
+        state.settings.conversion = parseFloat(document.getElementById('conversionRate').value) / 100;
+        state.settings.workDays = parseInt(document.getElementById('workDays').value);
+        state.settings.inboundShare = parseFloat(document.getElementById('inboundShare').value);
+        state.settings.coldShare = parseFloat(document.getElementById('coldShare').value);
+        saveToLS();
+        document.getElementById('settingsModal').style.display = 'none';
+        renderMainUI();
+    });
+    document.getElementById('submitDayBtn').addEventListener('click', commitDay);
+    document.getElementById('resetDataBtn').addEventListener('click', resetAll);
+    document.getElementById('analyzeCallBtn').addEventListener('click', analyzeCall);
+    document.getElementById('saveApiKeyBtn').addEventListener('click', saveApiKey);
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.addEventListener('click', () => switchTab(btn.dataset.tab)));
+    window.addEventListener('click', e => { if (e.target === document.getElementById('settingsModal')) document.getElementById('settingsModal').style.display = 'none'; });
+
+    const savedKey = getApiKey();
+    if (savedKey) {
+        document.getElementById('apiKeyInput').value = savedKey;
+        document.getElementById('apiKeySavedMsg').style.display = 'block';
+    }
+    updateStepDots();
+}
+
+// ===================== INIT =====================
+loadFromLS();
+bindEvents();
+renderMainUI();
+document.getElementById('todayDateSpan').innerText = new Date().toLocaleDateString('ru-RU');
+document.getElementById('dateBadge').innerHTML = `📅 ${new Date().toLocaleDateString('ru-RU')}`;
+</script>
+
+</body>
+</html>
