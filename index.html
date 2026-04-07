@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Sales Navigator v6</title>
+<meta name="theme-color" content="#080e1a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+:root{
+  --bg:#080e1a; --card:#0f1827; --card2:#111d2e; --card3:#0b1422; --border:#1a2740;
+  --accent:#3b82f6; --accent2:#8b5cf6; --green:#10b981; --yellow:#f59e0b; --red:#ef4444;
+  --text:#e2e8f0; --muted:#94a3b8; --dim:#334155; --chip:#0d1626;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;min-height:100%;background:var(--bg);color:var(--text);font-family:Inter,Segoe UI,system-ui,sans-serif}
+body{padding:16px 14px 90px}
+.container{max-width:1100px;margin:0 auto}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px;padding:0 2px;flex-wrap:wrap}
+.brand{display:flex;flex-direction:column;gap:2px}
+.brand h1{margin:0;font-size:20px;letter-spacing:.2px;background:linear-gradient(135deg,#a78bfa,#3b82f6,#10b981);-webkit-background-clip:text;background-clip:text;color:transparent}
+.brand p,.subtle{margin:0;color:var(--muted);font-size:12px;line-height:1.45}
+.pill{display:inline-flex;align-items:center;gap:8px;background:var(--card2);border:1px solid var(--border);padding:7px 12px;border-radius:999px;font-size:12px;color:var(--muted)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px rgba(16,185,129,.12)}
+.tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;background:var(--card);border:1px solid var(--border);padding:8px;border-radius:18px;margin-bottom:14px}
+.tab-btn{background:transparent;border:none;color:var(--muted);padding:11px 8px;border-radius:14px;font-weight:700;font-size:12px;cursor:pointer;transition:.18s}
+.tab-btn.active{background:linear-gradient(135deg,#1d4ed8,#7c3aed);color:#fff;box-shadow:0 6px 16px rgba(59,130,246,.24)}
+.tab{display:none}
+.tab.active{display:block}
+.grid2{display:grid;grid-template-columns:1.3fr .9fr;gap:14px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.card{background:linear-gradient(180deg,var(--card),var(--card3));border:1px solid var(--border);border-radius:20px;padding:16px;box-shadow:0 8px 24px rgba(0,0,0,.25);margin-bottom:14px}
+.card-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.card-title{font-weight:800;font-size:15px;background:linear-gradient(135deg,#a78bfa,#3b82f6);-webkit-background-clip:text;background-clip:text;color:transparent}
+.badge{display:inline-flex;align-items:center;gap:6px;background:var(--chip);border:1px solid var(--border);border-radius:999px;padding:6px 10px;color:var(--muted);font-size:11px}
+.kpi{background:var(--card2);border:1px solid var(--border);border-radius:18px;padding:14px;position:relative;overflow:hidden}
+.kpi:before{content:'';position:absolute;left:0;top:0;height:2px;width:100%;background:linear-gradient(90deg,#3b82f6,#8b5cf6)}
+.kpi-label{color:var(--muted);font-size:11px;margin-bottom:8px;text-transform:uppercase;letter-spacing:.6px}
+.kpi-value{font-size:34px;font-weight:900;line-height:1}
+.kpi-sub{color:var(--muted);font-size:11px;margin-top:4px}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.input-row{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0}
+.input-group{flex:1;min-width:140px}
+.input-group label{display:block;color:var(--muted);font-size:11px;margin-bottom:5px}
+.input-group input,.input-group textarea,.input-group select{width:100%;background:#060d18;border:1px solid var(--dim);padding:11px 12px;border-radius:14px;color:#facc15;outline:none;font-size:13px;font-family:inherit}
+.input-group textarea{resize:vertical}
+button.primary, .btn{width:100%;background:linear-gradient(135deg,#1d4ed8,#7c3aed);border:none;color:#fff;padding:12px 14px;border-radius:14px;font-weight:800;cursor:pointer;transition:.18s;font-size:13px}
+button.primary:hover,.btn:hover{transform:translateY(-1px);filter:brightness(1.08)}
+.btn-ghost{width:auto;background:var(--card2);border:1px solid var(--border);color:var(--muted)}
+.btn-danger{background:linear-gradient(135deg,#ef4444,#dc2626)}
+.btn-green{background:linear-gradient(135deg,#10b981,#059669)}
+button:disabled{opacity:.6;cursor:not-allowed;transform:none}
+.progress{height:8px;background:#07101c;border-radius:999px;overflow:hidden;border:1px solid var(--border)}
+.fill{height:100%;border-radius:999px;background:linear-gradient(90deg,#3b82f6,#8b5cf6);transition:width .4s ease}
+.fill.green{background:linear-gradient(90deg,#10b981,#34d399)}
+.fill.yellow{background:linear-gradient(90deg,#f59e0b,#fbbf24)}
+.fill.red{background:linear-gradient(90deg,#ef4444,#fb7185)}
+.stats{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.stat{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid rgba(26,39,64,.75);font-size:13px}
+.stat:last-child{border-bottom:none}
+.small{font-size:11px;color:var(--muted)}
+.grid-call{display:grid;grid-template-columns:1.1fr .9fr;gap:14px}
+.list{display:flex;flex-direction:column;gap:8px}
+.list-item{background:var(--card2);border:1px solid var(--border);border-radius:14px;padding:11px 12px}
+.list-item strong{display:block;font-size:13px;margin-bottom:3px}
+.list-item span{color:var(--muted);font-size:11px}
+.score{display:inline-flex;align-items:center;justify-content:center;padding:7px 14px;border-radius:999px;font-weight:900;font-size:18px}
+.score.good{background:rgba(16,185,129,.12);color:#34d399;border:1px solid rgba(16,185,129,.35)}
+.score.mid{background:rgba(245,158,11,.12);color:#fbbf24;border:1px solid rgba(245,158,11,.35)}
+.score.bad{background:rgba(239,68,68,.12);color:#f87171;border:1px solid rgba(239,68,68,.35)}
+.box{background:var(--card2);border:1px solid var(--border);border-radius:16px;padding:14px}
+.textblock{white-space:pre-wrap;line-height:1.7;font-size:13px;color:#cbd5e1}
+.transcript{max-height:210px;overflow:auto;background:#060d18;border-radius:14px;border:1px solid var(--border);padding:12px;color:var(--muted);white-space:pre-wrap;font-size:12px;line-height:1.65}
+.criteria{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.crit{background:var(--card2);border:1px solid var(--border);border-radius:14px;padding:10px}
+.crit .label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.crit .num{font-size:22px;font-weight:900}
+.crit .num.good{color:#34d399}.crit .num.mid{color:#fbbf24}.crit .num.bad{color:#f87171}
+.hist-item{display:flex;justify-content:space-between;gap:12px;align-items:center;background:var(--card2);border:1px solid var(--border);border-radius:14px;padding:12px;cursor:pointer}
+.hist-item:hover{border-color:#3b82f6}
+.hist-title{font-size:13px;font-weight:700}
+.hist-meta{font-size:11px;color:var(--muted);margin-top:2px}
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.84);backdrop-filter:blur(8px);z-index:1000;align-items:center;justify-content:center;padding:14px}
+.modal-inner{width:min(560px,100%);background:var(--card);border:1px solid var(--border);border-radius:22px;padding:18px;max-height:92vh;overflow:auto}
+.modal-wide{width:min(820px,100%)}
+.loader-wrap{display:none;text-align:center;padding:18px 0}
+.loader{display:inline-block;width:32px;height:32px;border-radius:50%;border:3px solid var(--border);border-top-color:#3b82f6;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.analysis-hero{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.tag{font-size:11px;color:#c4b5fd;background:rgba(139,92,246,.12);border:1px solid rgba(139,92,246,.25);padding:5px 9px;border-radius:999px}
+.notice{background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.22);color:#cfe3ff;border-radius:14px;padding:12px;font-size:12px;line-height:1.6}
+.warn{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.22);color:#fde6ba;border-radius:14px;padding:12px;font-size:12px;line-height:1.6}
+.ok{background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.22);color:#bff7df;border-radius:14px;padding:12px;font-size:12px;line-height:1.6}
+.footer-actions{display:flex;gap:8px;flex-wrap:wrap}
+.footer-actions button{width:auto}
+.sticky-bar{position:fixed;left:0;right:0;bottom:0;background:rgba(8,14,26,.92);backdrop-filter:blur(8px);border-top:1px solid var(--border);padding:10px 14px}
+.sticky-inner{max-width:1100px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+@media (max-width: 980px){
+  .grid2,.grid3,.grid-call,.criteria{grid-template-columns:1fr}
+  .tabs{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="topbar">
+    <div class="brand">
+      <h1>Sales Navigator v6</h1>
+      <p>AI-наставник для продаж: план дня, разбор звонков, недельный прогресс.</p>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <div class="pill"><span class="dot"></span><span id="accessState">проверка…</span></div>
+      <div class="pill">👤 <span id="userNamePill">Гость</span></div>
+      <div class="pill">🔢 <span id="usagePill">0 анализов</span></div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="dashboard">📊<br>Дашборд</button>
+    <button class="tab-btn" data-tab="call">🎙️<br>Звонок</button>
+    <button class="tab-btn" data-tab="weekly">📅<br>Неделя</button>
+    <button class="tab-btn" data-tab="history">📋<br>История</button>
+    <button class="tab-btn" data-tab="settings">⚙️<br>Настройки</button>
+  </div>
+
+  <!-- DASHBOARD -->
+
+  <section id="dashboard" class="tab active">
+    <div class="grid2">
+      <div>
+        <div class="grid3">
+          <div class="kpi">
+            <div class="kpi-label">Оценка дня</div>
+            <div class="kpi-value" id="dayScoreKpi">—</div>
+            <div class="kpi-sub" id="dayScoreSub">пока нет данных</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">Серия дней</div>
+            <div class="kpi-value" id="streakKpi">0</div>
+            <div class="kpi-sub">дней подряд с выполнением</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">Анализы звонков</div>
+            <div class="kpi-value" id="analysesKpi">0</div>
+            <div class="kpi-sub">в этом профиле</div>
+          </div>
+        </div>
+
+```
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">🎯 Сегодня</div>
+        <span class="badge">план дня</span>
+      </div>
+      <div id="todayPlan" class="textblock">Заполни настройки, и я покажу план дня.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">🤖 AI разбор дня</div>
+        <span class="badge">авто</span>
+      </div>
+      <div id="aiDayBlock" class="textblock">—</div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">📈 Воронка</div>
+        <span class="badge" id="funnelBadge">0% конверсия</span>
+      </div>
+      <div class="stats">
+        <div class="stat"><span>📞 Контакты</span><strong id="funnelCalls">0</strong></div>
+        <div class="stat"><span>📥 Лиды</span><strong id="funnelLeads">0</strong></div>
+        <div class="stat"><span>💰 Оплаты</span><strong id="funnelSales">0</strong></div>
+        <div class="stat"><span>📊 Выручка</span><strong id="funnelRevenue">0 ₽</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">📆 Результаты дня</div>
+        <span class="badge" id="todayBadge">—</span>
+      </div>
+      <div class="input-row">
+        <div class="input-group"><label>📥 Входящие лиды</label><input type="number" id="todayLeads" min="0" value="0"></div>
+        <div class="input-group"><label>💰 Оплаты из входящих</label><input type="number" id="todaySalesIn" min="0" value="0"></div>
+      </div>
+      <div class="input-row">
+        <div class="input-group"><label>❄️ Клиенты из холодного прозвона</label><input type="number" id="todayColdCalls" min="0" value="0"></div>
+        <div class="input-group"><label>💰 Оплаты из холодных</label><input type="number" id="todaySalesCold" min="0" value="0"></div>
+      </div>
+      <div class="input-row">
+        <div class="input-group"><label>🔁 Повторные касания</label><input type="number" id="todayFollowUps" min="0" value="0"></div>
+        <div class="input-group"><label>🗂️ Своя база</label><input type="number" id="todayOwnBase" min="0" value="0"></div>
+      </div>
+      <button class="primary" id="saveDayBtn">✅ Зафиксировать день</button>
+      <div class="footer-actions" style="margin-top:8px">
+        <button class="btn btn-ghost" id="clearTodayBtn">Очистить</button>
+        <button class="btn btn-danger" id="resetStatsBtn">Сбросить всё</button>
+      </div>
+      <div id="dayFeedback" class="notice" style="margin-top:12px">Внеси данные за сегодня, чтобы получить оценку и фокус.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">⚡ Рекомендация недели</div>
+        <span class="badge">динамика</span>
+      </div>
+      <div id="weekAdvice" class="textblock">—</div>
+    </div>
+  </div>
+</div>
+```
+
+  </section>
+
+  <!-- CALL -->
+
+  <section id="call" class="tab">
+    <div class="grid-call">
+      <div>
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">🎙️ AI разбор звонка</div>
+            <span class="badge">MP3 / WAV / M4A / OGG</span>
+          </div>
+
+```
+      <!-- FIX: Groq key notice -->
+      <div class="notice" style="margin-bottom:12px">
+        🔑 Для работы нужен <strong>Groq API Key</strong> — бесплатно на
+        <a href="https://console.groq.com" target="_blank" style="color:#93c5fd">console.groq.com</a>.<br>
+        Добавь ключ (gsk_...) в разделе ⚙️ <strong>Настройки</strong>, затем вернись сюда.
+        <span id="groqKeyStatus" style="display:block;margin-top:6px;font-weight:700"></span>
+      </div>
+
+      <div class="input-row">
+        <div class="input-group"><label>🔑 Код доступа</label><input id="accessCodeInput" type="password" placeholder="Введите код доступа"></div>
+        <div class="input-group"><label>👤 Имя пользователя</label><input id="profileName" type="text" placeholder="Как вас зовут"></div>
+      </div>
+      <div class="input-row">
+        <div class="input-group"><label>🏢 Компания / роль</label><input id="profileRole" type="text" placeholder="Менеджер / РОП"></div>
+        <div class="input-group"><label>🎯 Фокус</label><input id="profileGoal" type="text" placeholder="Что улучшать?"></div>
+      </div>
+      <div class="input-row">
+        <div class="input-group">
+          <label>📁 Файл звонка</label>
+          <input id="callFile" type="file" accept="audio/*,video/*,.mp4,.mp3,.wav,.m4a,.ogg">
+        </div>
+      </div>
+      <div class="input-group">
+        <label>📋 Контекст для AI</label>
+        <textarea id="callContext" rows="3" placeholder="Тип звонка, продукт, что важно проверить"></textarea>
+      </div>
+
+      <div class="footer-actions" style="margin-top:10px">
+        <button class="primary" id="analyzeCallBtn">🧠 Транскрибировать и проанализировать</button>
+        <button class="btn btn-ghost" id="saveProfileBtn">Сохранить профиль</button>
+      </div>
+
+      <div class="loader-wrap" id="callLoader">
+        <div class="loader"></div>
+        <div class="small" id="callLoaderText">Подготовка…</div>
+      </div>
+
+      <div id="callOutput" style="display:none;margin-top:14px">
+        <div class="analysis-hero">
+          <div class="badge">Оценка звонка</div>
+          <div id="callScore" class="score mid">—</div>
+        </div>
+        <div class="criteria" id="criteriaGrid" style="margin:12px 0"></div>
+        <div class="box" style="margin-bottom:12px">
+          <div class="card-head" style="margin-bottom:8px">
+            <div class="card-title">📝 Транскрипция</div>
+            <span class="tag">whisper</span>
+          </div>
+          <div class="transcript" id="transcriptText"></div>
+        </div>
+        <div class="box">
+          <div class="card-head" style="margin-bottom:8px">
+            <div class="card-title">🤖 AI-разбор по Гребенюку</div>
+            <span class="tag">sales coach</span>
+          </div>
+          <div class="textblock" id="analysisText"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">🔐 Доступ и лимиты</div>
+        <span class="badge" id="limitBadge">free trial</span>
+      </div>
+      <div class="stats">
+        <div class="stat"><span>Пользователь</span><strong id="userStat">—</strong></div>
+        <div class="stat"><span>Посещения</span><strong id="visitsStat">0</strong></div>
+        <div class="stat"><span>Анализы</span><strong id="analysesStat">0</strong></div>
+        <div class="stat"><span>Лимит trial</span><strong id="trialStat">0 / 0</strong></div>
+        <div class="stat"><span>Groq Key</span><strong id="groqKeyStat" style="color:#f87171">не задан</strong></div>
+      </div>
+      <button class="btn btn-green" id="activateAccessBtn" style="margin-top:10px">🔓 Активировать доступ</button>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">🧠 Как работает AI</div>
+        <span class="badge">pipeline</span>
+      </div>
+      <div class="textblock">
+```
+
+1. Добавь Groq API Key в ⚙️ Настройки
+1. Загрузи MP3/WAV/M4A
+1. Whisper транскрибирует аудио
+1. LLaMA анализирует по методологии Гребенюка
+1. Результат сохраняется в истории
+
+Groq — бесплатный сервис, ключ получить на console.groq.com
+</div>
+</div>
+</div>
+</div>
+
+  </section>
+
+  <!-- WEEKLY -->
+
+  <section id="weekly" class="tab">
+    <div class="grid2">
+      <div>
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">📅 Итог недели</div>
+            <span class="badge">последние 7 дней</span>
+          </div>
+          <div class="grid3" style="margin-bottom:12px">
+            <div class="kpi">
+              <div class="kpi-label">Средняя оценка</div>
+              <div class="kpi-value" id="weeklyAvgScore">—</div>
+              <div class="kpi-sub">по дням</div>
+            </div>
+            <div class="kpi">
+              <div class="kpi-label">Лучший день</div>
+              <div class="kpi-value" id="bestDayScore">—</div>
+              <div class="kpi-sub">максимум</div>
+            </div>
+            <div class="kpi">
+              <div class="kpi-label">Рост</div>
+              <div class="kpi-value" id="weeklyGrowth">—</div>
+              <div class="kpi-sub">динамика</div>
+            </div>
+          </div>
+          <div id="weeklySummary" class="textblock">—</div>
+        </div>
+
+```
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">📈 Прогресс месяца</div>
+        <span class="badge">выручка</span>
+      </div>
+      <div class="stats">
+        <div class="stat"><span>🎯 План</span><strong id="monthPlanOut">—</strong></div>
+        <div class="stat"><span>✅ Факт</span><strong id="factRevenueOut">—</strong></div>
+        <div class="stat"><span>⚡ Осталось</span><strong id="remainRevenueOut">—</strong></div>
+        <div class="stat"><span>📥 Лидов</span><strong id="factLeadsOut">0</strong></div>
+        <div class="stat"><span>❄️ Холодных</span><strong id="factColdOut">0</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">⚡ План на неделю</div>
+        <span class="badge">действия</span>
+      </div>
+      <div id="weeklyPlan" class="textblock">—</div>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">🔥 Серия и привычка</div>
+        <span class="badge">мотивация</span>
+      </div>
+      <div id="streakBox" class="textblock">—</div>
+    </div>
+  </div>
+</div>
+```
+
+  </section>
+
+  <!-- HISTORY -->
+
+  <section id="history" class="tab">
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">📋 История анализов</div>
+        <span class="badge" id="historyCount">0</span>
+      </div>
+      <div id="historyList" class="list"></div>
+      <div class="footer-actions" style="margin-top:10px">
+        <button class="btn btn-ghost" id="exportJsonBtn">⬇️ Backup JSON</button>
+        <button class="btn btn-danger" id="clearHistoryBtn">🗑️ Очистить историю</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- SETTINGS -->
+
+  <section id="settings" class="tab">
+    <div class="grid2">
+      <div class="card">
+        <div class="card-head"><div class="card-title">⚙️ Настройки</div><span class="badge">локально</span></div>
+
+```
+    <!-- FIX: Groq Key field prominently at top -->
+    <div style="background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.25);border-radius:14px;padding:12px;margin-bottom:12px;font-size:12px;color:#bff7df">
+      🔑 <strong>Groq API Key</strong> — нужен для анализа звонков. Получи бесплатно на
+      <a href="https://console.groq.com" target="_blank" style="color:#6ee7b7">console.groq.com</a> → API Keys → Create Key → No expiration.
+    </div>
+    <div class="input-group" style="margin-bottom:12px">
+      <label>🔑 Groq API Key (gsk_...)</label>
+      <input id="groqKey" type="password" placeholder="gsk_...">
+    </div>
+
+    <div class="input-row">
+      <div class="input-group"><label>💰 Месячный план</label><input id="monthPlan" type="number" value="1750000"></div>
+      <div class="input-group"><label>💵 Средний чек</label><input id="avgCheck" type="number" value="107000"></div>
+    </div>
+    <div class="input-row">
+      <div class="input-group"><label>📊 Конверсия (%)</label><input id="conversionRate" type="number" value="6"></div>
+      <div class="input-group"><label>📅 Рабочих дней</label><input id="workDays" type="number" value="22"></div>
+    </div>
+    <div class="input-row">
+      <div class="input-group"><label>🎯 Доля входящих (%)</label><input id="inboundShare" type="number" value="70"></div>
+      <div class="input-group"><label>❄️ Доля холодных (%)</label><input id="coldShare" type="number" value="25"></div>
+    </div>
+    <div class="input-row">
+      <div class="input-group"><label>⏱️ Trial лимит анализов</label><input id="trialLimit" type="number" value="999"></div>
+      <div class="input-group"><label>🔐 Код доступа</label><input id="accessCode" type="text" placeholder="SN-V6-2026"></div>
+    </div>
+    <div class="input-group">
+      <label>🌐 Proxy endpoint</label>
+      <input id="proxyBase" type="text" placeholder="https://your-worker.workers.dev">
+    </div>
+    <div class="input-group" style="margin-top:10px">
+      <label>📡 Analytics endpoint (опционально)</label>
+      <input id="analyticsUrl" type="text" placeholder="https://...">
+    </div>
+    <div class="footer-actions" style="margin-top:12px">
+      <button class="primary" id="saveSettingsBtn">💾 Сохранить</button>
+      <button class="btn btn-ghost" id="resetLocalBtn">Сбросить данные</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><div class="card-title">🧩 Архитектура</div><span class="badge">MVP</span></div>
+    <div class="notice">
+      Ключ Groq хранится в localStorage браузера. Это нормально для личного/командного использования.
+      Для публичного SaaS — вынести на backend.
+    </div>
+    <div class="warn" style="margin-top:10px">
+      Прокси на Cloudflare Workers пробрасывает запросы на api.groq.com, решая CORS.
+      Если прокси не задан — API недоступен из браузера.
+    </div>
+    <div class="ok" style="margin-top:10px">
+      Что работает: дашборд, план дня, анализ звонков (Whisper + LLaMA), история, недельный отчёт, streak, backup.
+    </div>
+  </div>
+</div>
+```
+
+  </section>
+</div>
+
+<div class="sticky-bar">
+  <div class="sticky-inner">
+    <div class="small" id="statusLine">Готов к работе</div>
+    <div class="footer-actions">
+      <button class="btn btn-ghost" id="backupBtn">💾 Backup</button>
+    </div>
+  </div>
+</div>
+
+<!-- ACCESS MODAL -->
+
+<div class="modal" id="accessModal">
+  <div class="modal-inner">
+    <div class="card-head">
+      <div class="card-title">🔐 Вход в Sales Navigator</div>
+      <span class="badge">первый вход</span>
+    </div>
+    <div class="notice">Введи код доступа и имя.</div>
+    <div class="input-row">
+      <div class="input-group"><label>Код доступа</label><input id="modalAccessCode" type="password" placeholder="SN-V6-2026"></div>
+      <div class="input-group"><label>Имя</label><input id="modalUserName" type="text" placeholder="Михаил"></div>
+    </div>
+    <div class="input-row">
+      <div class="input-group"><label>Роль</label><input id="modalUserRole" type="text" placeholder="Менеджер / РОП"></div>
+      <div class="input-group"><label>Фокус</label><input id="modalUserGoal" type="text" placeholder="Прокачать конверсию"></div>
+    </div>
+    <button class="primary" id="confirmAccessBtn">🔓 Войти</button>
+  </div>
+</div>
+
+<!-- ANALYSIS MODAL -->
+
+<div class="modal" id="analysisModal">
+  <div class="modal-inner modal-wide">
+    <div class="analysis-hero">
+      <div class="card-title">📄 Разбор звонка</div>
+      <div class="footer-actions">
+        <button class="btn btn-ghost" id="closeAnalysisBtn">✕</button>
+      </div>
+    </div>
+    <div id="analysisModalContent" style="margin-top:12px"></div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'salesNavV6';
+const DEFAULTS = {
+  settings: {
+    monthPlan: 1750000,
+    avgCheck: 107000,
+    conversionRate: 0.06,
+    workDays: 22,
+    inboundShare: 70,
+    coldShare: 25,
+    trialLimit: 999,
+    accessCode: 'SN-V6-2026',
+    proxyBase: 'https://sales-navigator.g6dfdsggt8.workers.dev',
+    groqKey: '',        // ← КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ
+    analyticsUrl: ''
+  },
+  profile: { name: '', role: '', goal: '' },
+  stats: { visits: 0, analyses: 0, dayLogs: [], callHistory: [] },
+  access: { granted: false, userId: '' }
+};
+let state = structuredClone(DEFAULTS);
+let currentCallResult = null;
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const p = JSON.parse(raw);
+      state.settings = { ...state.settings, ...(p.settings || {}) };
+      state.profile = { ...state.profile, ...(p.profile || {}) };
+      state.stats = { ...state.stats, ...(p.stats || {}) };
+      state.access = { ...state.access, ...(p.access || {}) };
+    }
+  } catch(e) {}
+}
+function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+function uid() { return 'u_' + Math.random().toString(36).slice(2,10) + Date.now().toString(36); }
+function todayISO() { return new Date().toISOString().slice(0,10); }
+function fmt(n) { return Number(n).toLocaleString('ru-RU'); }
+
+function track(event, data={}) {
+  const url = (state.settings.analyticsUrl || '').trim();
+  if (!url) return;
+  fetch(url, {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ event, data, userId: state.access.userId||'', name: state.profile.name||'', ts: new Date().toISOString() })
+  }).catch(()=>{});
+}
+
+function setTab(tabName) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(tabName).classList.add('active');
+  document.querySelector(`.tab-btn[data-tab="${tabName}"]`).classList.add('active');
+  renderAll();
+}
+
+function computeGoals() {
+  const s = state.settings;
+  const inbRev = s.monthPlan * (s.inboundShare / 100);
+  const coldRev = s.monthPlan * (s.coldShare / 100);
+  return {
+    dailyInbound: Math.ceil(inbRev / s.avgCheck / s.conversionRate / s.workDays),
+    dailyCold: Math.ceil(coldRev / s.avgCheck / s.conversionRate / s.workDays),
+    inboundNeeded: Math.ceil(inbRev / s.avgCheck / s.conversionRate),
+    coldNeeded: Math.ceil(coldRev / s.avgCheck / s.conversionRate)
+  };
+}
+
+function aggregateMonth() {
+  const sums = { totalInboundLeads:0, totalInboundPayments:0, totalColdPayments:0, totalColdContacts:0, followUps:0, ownBase:0 };
+  for (const d of state.stats.dayLogs) {
+    sums.totalInboundLeads += d.inboundLeads || 0;
+    sums.totalInboundPayments += d.inboundPayments || 0;
+    sums.totalColdPayments += d.coldPayments || 0;
+    sums.totalColdContacts += d.coldCalls || 0;
+    sums.followUps += d.followUps || 0;
+    sums.ownBase += d.ownBase || 0;
+  }
+  return sums;
+}
+
+function currentRevenue() {
+  const agg = aggregateMonth();
+  return (agg.totalInboundPayments + agg.totalColdPayments) * state.settings.avgCheck;
+}
+
+function calcDailyScore(d) {
+  const g = computeGoals();
+  const leadsPart = g.dailyInbound ? Math.min(4, (d.inboundLeads / g.dailyInbound) * 4) : 0;
+  const coldPart = g.dailyCold ? Math.min(2.5, (d.coldCalls / g.dailyCold) * 2.5) : 0;
+  const followPart = Math.min(1.5, (d.followUps / Math.max(8, g.dailyInbound)) * 1.5);
+  const revPart = Math.min(2, (((d.inboundPayments||0)+(d.coldPayments||0)) / Math.max(1,g.dailyInbound)) * 2);
+  return Math.max(0, Math.min(10, leadsPart + coldPart + followPart + revPart));
+}
+
+function calcStreak() {
+  const logs = [...state.stats.dayLogs].sort((a,b)=>a.date.localeCompare(b.date));
+  let streak = 0;
+  for (let i = logs.length-1; i >= 0; i--) {
+    if (calcDailyScore(logs[i]) >= 6) streak++; else break;
+  }
+  return streak;
+}
+
+function recommendFocus(d) {
+  const g = computeGoals();
+  if (d.inboundLeads < g.dailyInbound * 0.7) return 'добрать входящие лиды';
+  if (d.coldCalls < g.dailyCold * 0.7) return 'усилить холодный прозвон';
+  if ((d.inboundPayments||0)+(d.coldPayments||0) === 0) return 'дожим и отработка возражений';
+  if (d.followUps < 8) return 'повторные касания';
+  return 'масштабировать лучший сценарий';
+}
+
+function buildDayInsight() {
+  const logs = state.stats.dayLogs;
+  if (!logs.length) return 'Зафиксируй первый день — покажу анализ и фокус.';
+  const last = logs[logs.length-1];
+  const g = computeGoals();
+  const score = calcDailyScore(last);
+  const rev = currentRevenue();
+  const monthPct = (rev / state.settings.monthPlan) * 100;
+  let lines = [`Оценка последнего дня: ${score.toFixed(1)}/10.`];
+  if (last.inboundLeads < g.dailyInbound) lines.push(`Входящих не хватает: ${last.inboundLeads}/${g.dailyInbound}.`);
+  if (last.coldCalls < g.dailyCold) lines.push(`Холодных ниже плана: ${last.coldCalls}/${g.dailyCold}.`);
+  if (last.followUps < 8) lines.push(`Повторные касания слабые: ${last.followUps}.`);
+  if ((last.inboundPayments||0)+(last.coldPayments||0) === 0) lines.push('Нет оплат — проверь скрипт и закрытие.');
+  if (monthPct < 50) lines.push('Ты пока ниже 50% плана — важно поднять входящий поток.');
+  else if (monthPct < 80) lines.push('До плана близко — главное дисциплина и дожим.');
+  else lines.push('Близко к финишу — не теряй темп.');
+  lines.push('', `Фокус: ${recommendFocus(last)}`);
+  return lines.join('\n');
+}
+
+function getWeeklySlice() { return state.stats.dayLogs.slice(-7); }
+
+function weeklySummaryText() {
+  const logs = getWeeklySlice();
+  if (!logs.length) return 'Нет данных за неделю.';
+  const scores = logs.map(calcDailyScore);
+  const avg = scores.reduce((a,b)=>a+b,0) / scores.length;
+  const best = Math.max(...scores);
+  const mid = Math.ceil(scores.length/2);
+  const a1 = scores.slice(0,mid).reduce((a,b)=>a+b,0)/Math.max(1,mid);
+  const a2 = scores.slice(mid).reduce((a,b)=>a+b,0)/Math.max(1,scores.length-mid);
+  const growth = a2 - a1;
+  const last = logs[logs.length-1];
+  return [
+    `За 7 дней средняя оценка: ${avg.toFixed(1)}/10.`,
+    `Лучший день: ${best.toFixed(1)}/10.`,
+    `Динамика: ${growth >= 0 ? '+' : ''}${growth.toFixed(1)}.`,
+    `Фокус последнего дня: ${recommendFocus(last)}.`,
+    '', 'Совет: добей слабый канал и повторные касания.'
+  ].join('\n');
+}
+
+function weeklyPlanText() {
+  const g = computeGoals();
+  const rev = currentRevenue();
+  const remainRev = Math.max(0, state.settings.monthPlan - rev);
+  const remainDays = Math.max(1, state.settings.workDays - state.stats.dayLogs.length);
+  const needPerDay = remainRev / remainDays;
+  const leadsPerDay = (needPerDay / state.settings.avgCheck / state.settings.conversionRate).toFixed(1);
+  return [
+    `1) Входящие: минимум ${g.dailyInbound} в день.`,
+    `2) Клиенты из холодного прозвона: ${g.dailyCold} в день.`,
+    `3) Повторные касания: от 8+ в день.`,
+    `4) Остаток плана: ${fmt(remainRev)} ₽.`,
+    `5) Ориентир на день: ${fmt(Math.round(needPerDay))} ₽ (~${leadsPerDay} лидов).`,
+    '', 'Главное: сначала не дать упасть конверсии, потом добирать объём.'
+  ].join('\n');
+}
+
+function updateAccessUI() {
+  const granted = !!state.access.granted;
+  const hasKey = !!(state.settings.groqKey);
+  document.getElementById('accessState').textContent = granted ? 'доступ активен' : 'доступ закрыт';
+  document.getElementById('accessState').style.color = granted ? '#bff7df' : '#fde6ba';
+  document.getElementById('userNamePill').textContent = state.profile.name || 'Гость';
+  document.getElementById('usagePill').textContent = `${state.stats.analyses||0} анализов`;
+  document.getElementById('userStat').textContent = state.profile.name || '—';
+  document.getElementById('visitsStat').textContent = state.stats.visits || 0;
+  document.getElementById('analysesStat').textContent = state.stats.analyses || 0;
+  document.getElementById('trialStat').textContent = `${state.stats.analyses||0} / ${state.settings.trialLimit}`;
+  document.getElementById('limitBadge').textContent = (state.stats.analyses||0) >= state.settings.trialLimit ? 'лимит' : 'активен';
+
+  // Groq key status
+  const groqStat = document.getElementById('groqKeyStat');
+  if (groqStat) {
+    groqStat.textContent = hasKey ? '✅ задан' : '❌ не задан';
+    groqStat.style.color = hasKey ? '#34d399' : '#f87171';
+  }
+  const groqStatus = document.getElementById('groqKeyStatus');
+  if (groqStatus) {
+    groqStatus.textContent = hasKey ? '✅ Groq ключ сохранён — готов к анализу' : '⚠️ Groq ключ не задан — перейди в ⚙️ Настройки';
+    groqStatus.style.color = hasKey ? '#34d399' : '#fbbf24';
+  }
+}
+
+function renderDashboard() {
+  const g = computeGoals();
+  const agg = aggregateMonth();
+  const rev = currentRevenue();
+  const pctPlan = (rev / state.settings.monthPlan) * 100;
+  const totalSales = (agg.totalInboundPayments||0) + (agg.totalColdPayments||0);
+  const convPct = agg.totalInboundLeads ? (totalSales / agg.totalInboundLeads) * 100 : 0;
+  const last = state.stats.dayLogs[state.stats.dayLogs.length-1];
+
+  document.getElementById('dayScoreKpi').textContent = last ? calcDailyScore(last).toFixed(1)+'/10' : '—';
+  document.getElementById('dayScoreSub').textContent = last ? `последний: ${last.date}` : 'нет данных';
+  document.getElementById('streakKpi').textContent = calcStreak();
+  document.getElementById('analysesKpi').textContent = state.stats.analyses || 0;
+  document.getElementById('todayBadge').textContent = new Date().toLocaleDateString('ru-RU');
+
+  document.getElementById('todayPlan').textContent = [
+    `Входящие лиды: ${g.dailyInbound} в день.`,
+    `Клиенты из холодного прозвона: ${g.dailyCold} в день.`,
+    `Повторные касания: минимум 8.`,
+    '', 'Не компенсируй нехватку входящих холодными до потери качества.'
+  ].join('\n');
+
+  document.getElementById('aiDayBlock').textContent = buildDayInsight();
+  document.getElementById('weekAdvice').textContent = `Ориентир темпа: ${fmt(Math.round(Math.max(0, state.settings.monthPlan - rev) / Math.max(1, state.settings.workDays - state.stats.dayLogs.length)))} ₽ в день.`;
+
+  document.getElementById('funnelCalls').textContent = agg.totalColdContacts;
+  document.getElementById('funnelLeads').textContent = agg.totalInboundLeads;
+  document.getElementById('funnelSales').textContent = totalSales;
+  document.getElementById('funnelRevenue').textContent = fmt(rev)+' ₽';
+  document.getElementById('funnelBadge').textContent = convPct.toFixed(1)+'% конверсия';
+
+  const fb = document.getElementById('dayFeedback');
+  if (last) {
+    const sc = calcDailyScore(last);
+    fb.className = sc >= 7 ? 'ok' : sc >= 5 ? 'warn' : 'notice';
+    fb.textContent = `${last.date}: ${sc.toFixed(1)}/10. Фокус: ${recommendFocus(last)}.`;
+  } else {
+    fb.className = 'notice';
+    fb.textContent = 'Внеси данные за сегодня, чтобы получить оценку и фокус.';
+  }
+
+  document.getElementById('monthPlanOut').textContent = fmt(state.settings.monthPlan)+' ₽';
+  document.getElementById('factRevenueOut').textContent = fmt(rev)+' ₽';
+  document.getElementById('remainRevenueOut').textContent = fmt(Math.max(0, state.settings.monthPlan-rev))+' ₽';
+  document.getElementById('factLeadsOut').textContent = agg.totalInboundLeads;
+  document.getElementById('factColdOut').textContent = agg.totalColdContacts;
+
+  renderWeekly();
+  renderHistory();
+  document.getElementById('statusLine').textContent = state.access.granted
+    ? `Готово · ${state.profile.name||'пользователь'} · ${state.stats.analyses||0} анализов · Groq: ${state.settings.groqKey?'✅':'❌'}`
+    : 'Введи код доступа';
+}
+
+function renderWeekly() {
+  const logs = getWeeklySlice();
+  const scores = logs.map(calcDailyScore);
+  const avg = scores.length ? scores.reduce((a,b)=>a+b,0)/scores.length : null;
+  const best = scores.length ? Math.max(...scores) : null;
+  let growth = null;
+  if (scores.length >= 4) {
+    const mid = Math.ceil(scores.length/2);
+    const a1 = scores.slice(0,mid).reduce((a,b)=>a+b,0)/mid;
+    const a2 = scores.slice(mid).reduce((a,b)=>a+b,0)/(scores.length-mid);
+    growth = a2 - a1;
+  }
+  document.getElementById('weeklyAvgScore').textContent = avg===null ? '—' : avg.toFixed(1);
+  document.getElementById('bestDayScore').textContent = best===null ? '—' : best.toFixed(1);
+  document.getElementById('weeklyGrowth').textContent = growth===null ? '—' : (growth>=0?'+':'')+growth.toFixed(1);
+  document.getElementById('weeklySummary').textContent = weeklySummaryText();
+  document.getElementById('weeklyPlan').textContent = weeklyPlanText();
+  const streak = calcStreak();
+  document.getElementById('streakBox').textContent = streak
+    ? `Серия ${streak} дня(ей). Сохраняй ритм.`
+    : 'Серия не набрана. Зафиксируй 2-3 дня подряд.';
+}
+
+function renderHistory() {
+  const list = document.getElementById('historyList');
+  const items = [...state.stats.callHistory].reverse();
+  document.getElementById('historyCount').textContent = `${items.length} звонков`;
+  if (!items.length) { list.innerHTML = '<div class="small">Нет истории. Загрузи первый звонок.</div>'; return; }
+  list.innerHTML = items.map((x,idx) => `
+    <div class="hist-item" onclick="openAnalysis(${items.length-idx-1})">
+      <div>
+        <div class="hist-title">${escapeHtml(x.profileName||'Менеджер')} · ${escapeHtml(x.fileName||'файл')}</div>
+        <div class="hist-meta">${x.date} · ${x.score}/10 · ${escapeHtml(x.role||'')}</div>
+      </div>
+      <div style="text-align:right">
+        <div class="score ${scoreClass(x.score)}">${x.score}/10</div>
+        <div class="small" style="margin-top:4px">открыть</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function scoreClass(s) { s=Number(s)||0; return s>=7?'good':s>=5?'mid':'bad'; }
+function escapeHtml(s='') { return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
+
+function parseCriteria(text) {
+  const defs = [
+    { key:'контак', label:'Установление контакта' },
+    { key:'потреб', label:'Выявление потребности' },
+    { key:'презент', label:'Презентация' },
+    { key:'возраж', label:'Работа с возражениями' },
+    { key:'закрыт', label:'Закрытие' }
+  ];
+  return defs.map(c => {
+    const re = new RegExp(`${c.label}[^:]*:\\s*(\\d+(?:[\\.,]\\d+)?)\\s*\\/\\s*10`, 'i');
+    const m = text.match(re);
+    return { ...c, score: m ? parseFloat(m[1].replace(',','.')) : 5 };
+  });
+}
+
+function renderCriteria(criteria) {
+  return criteria.map(c => `
+    <div class="crit">
+      <div class="label">${escapeHtml(c.label)}</div>
+      <div class="num ${c.score>=7?'good':c.score>=5?'mid':'bad'}">${c.score}/10</div>
+    </div>
+  `).join('');
+}
+
+function openAnalysis(index) {
+  const item = state.stats.callHistory[index];
+  if (!item) return;
+  document.getElementById('analysisModalContent').innerHTML = `
+    <div class="analysis-hero">
+      <div>
+        <div class="small">${escapeHtml(item.date)} · ${escapeHtml(item.fileName||'')}</div>
+        <div style="font-weight:800;font-size:18px;margin-top:4px">${escapeHtml(item.profileName||'Менеджер')} · ${item.score}/10</div>
+      </div>
+      <div class="score ${scoreClass(item.score)}">${item.score}/10</div>
+    </div>
+    <div class="criteria" style="margin:12px 0">${renderCriteria(item.criteria||[])}</div>
+    <div class="box" style="margin-bottom:12px">
+      <div class="card-head"><div class="card-title">📝 Транскрипция</div></div>
+      <div class="transcript">${escapeHtml(item.transcript||'')}</div>
+    </div>
+    <div class="box">
+      <div class="card-head"><div class="card-title">🤖 AI-разбор</div></div>
+      <div class="textblock">${escapeHtml(item.analysis||'')}</div>
+    </div>
+  `;
+  document.getElementById('analysisModal').style.display = 'flex';
+}
+
+function saveDay() {
+  if (!state.access.granted) { openAccessModal(); return; }
+  const day = {
+    date: todayISO(),
+    inboundLeads: +document.getElementById('todayLeads').value||0,
+    inboundPayments: +document.getElementById('todaySalesIn').value||0,
+    coldCalls: +document.getElementById('todayColdCalls').value||0,
+    coldPayments: +document.getElementById('todaySalesCold').value||0,
+    followUps: +document.getElementById('todayFollowUps').value||0,
+    ownBase: +document.getElementById('todayOwnBase').value||0
+  };
+  const idx = state.stats.dayLogs.findIndex(x => x.date === day.date);
+  if (idx >= 0) state.stats.dayLogs[idx] = day; else state.stats.dayLogs.push(day);
+  saveState(); track('save_day', day); renderAll();
+  alert('✅ День зафиксирован');
+}
+
+function clearToday() {
+  ['todayLeads','todaySalesIn','todayColdCalls','todaySalesCold','todayFollowUps','todayOwnBase']
+    .forEach(id => document.getElementById(id).value = 0);
+}
+
+function resetEverything() {
+  if (!confirm('Сбросить все данные?')) return;
+  state.stats = { visits:0, analyses:0, dayLogs:[], callHistory:[] };
+  state.access = { granted:false, userId:'' };
+  saveState(); clearToday(); renderAll(); openAccessModal();
+}
+
+function exportBackup() {
+  const blob = new Blob([JSON.stringify(state,null,2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `sales-nav-backup-${todayISO()}.json`;
+  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+}
+
+function openAccessModal() { document.getElementById('accessModal').style.display = 'flex'; }
+
+function confirmAccess() {
+  const code = (document.getElementById('modalAccessCode').value||'').trim();
+  const name = (document.getElementById('modalUserName').value||'').trim();
+  const role = (document.getElementById('modalUserRole').value||'').trim();
+  const goal = (document.getElementById('modalUserGoal').value||'').trim();
+  if (!code || code !== state.settings.accessCode) { alert('Неверный код доступа'); return; }
+  state.access.granted = true;
+  if (!state.access.userId) state.access.userId = uid();
+  state.profile.name = name || state.profile.name || 'Пользователь';
+  state.profile.role = role || state.profile.role;
+  state.profile.goal = goal || state.profile.goal;
+  saveState(); track('grant_access'); document.getElementById('accessModal').style.display = 'none'; renderAll();
+}
+
+function saveProfile() {
+  state.profile.name = document.getElementById('profileName').value.trim();
+  state.profile.role = document.getElementById('profileRole').value.trim();
+  state.profile.goal = document.getElementById('profileGoal').value.trim();
+  if (state.profile.name) { state.access.granted = true; if (!state.access.userId) state.access.userId = uid(); }
+  saveState(); track('save_profile'); renderAll();
+}
+
+function saveSettings() {
+  state.settings.monthPlan = +document.getElementById('monthPlan').value || state.settings.monthPlan;
+  state.settings.avgCheck = +document.getElementById('avgCheck').value || state.settings.avgCheck;
+  state.settings.conversionRate = (+document.getElementById('conversionRate').value||0) / 100;
+  state.settings.workDays = +document.getElementById('workDays').value || state.settings.workDays;
+  state.settings.inboundShare = +document.getElementById('inboundShare').value || state.settings.inboundShare;
+  state.settings.coldShare = +document.getElementById('coldShare').value || state.settings.coldShare;
+  state.settings.trialLimit = +document.getElementById('trialLimit').value || state.settings.trialLimit;
+  state.settings.accessCode = document.getElementById('accessCode').value.trim() || state.settings.accessCode;
+  state.settings.proxyBase = document.getElementById('proxyBase').value.trim() || state.settings.proxyBase;
+  // ← КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ: сохраняем Groq ключ
+  const groqInput = document.getElementById('groqKey').value.trim();
+  if (groqInput) state.settings.groqKey = groqInput;
+  state.settings.analyticsUrl = document.getElementById('analyticsUrl').value.trim();
+  saveState(); renderAll(); alert('✅ Настройки сохранены');
+}
+
+function fillSettings() {
+  document.getElementById('monthPlan').value = state.settings.monthPlan;
+  document.getElementById('avgCheck').value = state.settings.avgCheck;
+  document.getElementById('conversionRate').value = Math.round(state.settings.conversionRate * 100);
+  document.getElementById('workDays').value = state.settings.workDays;
+  document.getElementById('inboundShare').value = state.settings.inboundShare;
+  document.getElementById('coldShare').value = state.settings.coldShare;
+  document.getElementById('trialLimit').value = state.settings.trialLimit;
+  document.getElementById('accessCode').value = state.settings.accessCode;
+  document.getElementById('proxyBase').value = state.settings.proxyBase;
+  document.getElementById('groqKey').value = state.settings.groqKey || '';
+  document.getElementById('analyticsUrl').value = state.settings.analyticsUrl || '';
+}
+
+// ============================================================
+// ANALYZE CALL — КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ: Authorization header
+// ============================================================
+async function analyzeCall() {
+  if (!state.access.granted) { openAccessModal(); return; }
+
+  // Check Groq key first
+  const groqKey = (state.settings.groqKey || '').trim();
+  if (!groqKey) {
+    alert('❌ Groq API Key не задан.\n\nПерейди в ⚙️ Настройки → введи ключ (gsk_...) → сохрани.');
+    setTab('settings');
+    return;
+  }
+
+  const file = document.getElementById('callFile').files[0];
+  if (!file) { alert('Выбери файл звонка'); return; }
+  if (file.size > 25*1024*1024) { alert('Файл слишком большой. Максимум 25 МБ.'); return; }
+
+  const context = document.getElementById('callContext').value.trim();
+  const name = document.getElementById('profileName').value.trim() || state.profile.name || 'Менеджер';
+  const role = document.getElementById('profileRole').value.trim() || state.profile.role || '';
+  const goal = document.getElementById('profileGoal').value.trim() || state.profile.goal || '';
+
+  state.profile.name = name; state.profile.role = role; state.profile.goal = goal; saveState();
+
+  const loader = document.getElementById('callLoader');
+  const loaderText = document.getElementById('callLoaderText');
+  const output = document.getElementById('callOutput');
+  const btn = document.getElementById('analyzeCallBtn');
+
+  loader.style.display = 'block'; output.style.display = 'none'; btn.disabled = true;
+
+  const base = (state.settings.proxyBase || '').replace(/\/+$/, '');
+  // Authorization header с Groq ключом
+  const authHeader = { 'Authorization': `Bearer ${groqKey}` };
+
+  try {
+    loaderText.textContent = 'Шаг 1/2: Whisper транскрибирует аудио…';
+
+    const fd = new FormData();
+    fd.append('file', file, file.name);
+    fd.append('model', 'whisper-large-v3');
+    fd.append('language', 'ru');
+    fd.append('response_format', 'json');
+
+    // ← ИСПРАВЛЕНИЕ: передаём Authorization
+    const transcribeResp = await fetch(`${base}/audio/transcriptions`, {
+      method: 'POST',
+      headers: authHeader,
+      body: fd
+    });
+
+    if (!transcribeResp.ok) {
+      let errText = transcribeResp.statusText;
+      try { const e = await transcribeResp.json(); errText = e?.error?.message || JSON.stringify(e); } catch(e) {}
+      throw new Error(`Транскрипция: ${errText}`);
+    }
+    const transcript = ((await transcribeResp.json()).text || '').trim();
+    if (!transcript) throw new Error('Транскрипция пустая — проверь аудиофайл');
+
+    loaderText.textContent = 'Шаг 2/2: LLaMA анализирует по методологии Гребенюка…';
+
+    const prompt = `Проанализируй звонок менеджера по продажам.
+
+КОНТЕКСТ: Имя: ${name}, Роль: ${role}, Фокус: ${goal||'не указан'}, Доп: ${context||'нет'}
+
+МЕТОДОЛОГИЯ ГРЕБЕНЮКА:
+1. Контакт: представление в 10 сек, перехват инициативы, разрешение на вопросы
+2. Выявление потребности: 3-4 открытых вопроса ДО презентации (цель, ситуация, боль, бюджет)
+3. Презентация: через выгоды клиента, только после выявления потребности
+4. Возражения: Присоединение→Уточнение→Аргумент→Закрытие. Нельзя принять "нет" без отработки
+5. Закрытие: конкретный следующий шаг с датой. Нельзя заканчивать на "ну ладно"
+
+ТРАНСКРИПЦИЯ:
+${transcript}
+
+ФОРМАТ ОТВЕТА:
+ОЦЕНКА ПО КРИТЕРИЯМ:
+• Установление контакта: X/10 — причина
+• Выявление потребности: X/10 — причина
+• Презентация: X/10 — причина
+• Работа с возражениями: X/10 — причина
+• Закрытие: X/10 — причина
+
+ОБЩАЯ ОЦЕНКА: X/10
+
+ЧТО СДЕЛАНО ХОРОШО:
+• конкретный момент — почему правильно
+
+ЧТО КРИТИЧЕСКИ ИСПРАВИТЬ:
+• ошибка — как надо — конкретная фраза
+
+СКРИПТ НА СЛЕДУЮЩИЙ ЗВОНОК:
+• 3-4 конкретных вопроса/фразы
+
+СЛЕДУЮЩИЙ ШАГ:
+• конкретное действие
+
+Коротко и очень конкретно. Язык: русский.`;
+
+    // ← ИСПРАВЛЕНИЕ: Authorization в chat/completions тоже
+    const chatResp = await fetch(`${base}/chat/completions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${groqKey}` },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        max_tokens: 2000,
+        messages: [
+          { role: 'system', content: 'Ты — AI-наставник по продажам. Оценивай строго и практично по методологии Гребенюка. Пиши по-русски.' },
+          { role: 'user', content: prompt }
+        ]
+      })
+    });
+
+    if (!chatResp.ok) {
+      let errText = chatResp.statusText;
+      try { const e = await chatResp.json(); errText = e?.error?.message || JSON.stringify(e); } catch(e) {}
+      throw new Error(`AI анализ: ${errText}`);
+    }
+
+    const analysis = (await chatResp.json())?.choices?.[0]?.message?.content || '';
+    const scoreMatch = analysis.match(/ОБЩАЯ ОЦЕНКА:\s*(\d+(?:[.,]\d+)?)\s*\/\s*10/i);
+    const score = scoreMatch ? parseFloat(scoreMatch[1].replace(',','.')) : 5;
+    const criteria = parseCriteria(analysis);
+
+    const result = { date: todayISO(), fileName: file.name, profileName: name, role, goal, score, criteria, transcript, analysis };
+    state.stats.analyses = (state.stats.analyses||0) + 1;
+    state.stats.callHistory.push(result);
+    currentCallResult = result;
+    saveState();
+    track('analyze_call', {score, fileName: file.name, user: name});
+
+    document.getElementById('transcriptText').textContent = transcript;
+    document.getElementById('analysisText').textContent = analysis;
+    document.getElementById('callScore').textContent = score.toFixed(1)+'/10';
+    document.getElementById('callScore').className = 'score '+scoreClass(score);
+    document.getElementById('criteriaGrid').innerHTML = renderCriteria(criteria);
+    output.style.display = 'block';
+    renderAll();
+    output.scrollIntoView({behavior:'smooth', block:'start'});
+
+  } catch(err) {
+    console.error(err);
+    alert(`Ошибка: ${err.message}\n\nПроверь:\n1. Groq API Key в настройках\n2. Прокси endpoint\n3. Размер файла (до 25 МБ)`);
+  } finally {
+    loader.style.display = 'none'; btn.disabled = false;
+  }
+}
+
+function renderAll() { updateAccessUI(); renderDashboard(); renderHistory(); document.getElementById('todayBadge').textContent = new Date().toLocaleDateString('ru-RU'); }
+
+function syncInputsFromState() {
+  document.getElementById('profileName').value = state.profile.name || '';
+  document.getElementById('profileRole').value = state.profile.role || '';
+  document.getElementById('profileGoal').value = state.profile.goal || '';
+  fillSettings();
+}
+
+function setupEvents() {
+  document.querySelectorAll('.tab-btn').forEach(btn => btn.addEventListener('click', () => setTab(btn.dataset.tab)));
+  document.getElementById('saveDayBtn').addEventListener('click', saveDay);
+  document.getElementById('clearTodayBtn').addEventListener('click', clearToday);
+  document.getElementById('resetStatsBtn').addEventListener('click', resetEverything);
+  document.getElementById('analyzeCallBtn').addEventListener('click', analyzeCall);
+  document.getElementById('closeAnalysisBtn').addEventListener('click', () => document.getElementById('analysisModal').style.display = 'none');
+  document.getElementById('analysisModal').addEventListener('click', e => { if (e.target.id === 'analysisModal') e.currentTarget.style.display = 'none'; });
+  document.getElementById('clearHistoryBtn').addEventListener('click', () => {
+    if (!confirm('Очистить историю?')) return;
+    state.stats.callHistory = []; state.stats.analyses = 0; saveState(); renderAll();
+  });
+  document.getElementById('exportJsonBtn').addEventListener('click', exportBackup);
+  document.getElementById('backupBtn').addEventListener('click', exportBackup);
+  document.getElementById('saveProfileBtn').addEventListener('click', saveProfile);
+  document.getElementById('saveSettingsBtn').addEventListener('click', saveSettings);
+  document.getElementById('resetLocalBtn').addEventListener('click', resetEverything);
+  document.getElementById('activateAccessBtn').addEventListener('click', openAccessModal);
+  document.getElementById('confirmAccessBtn').addEventListener('click', confirmAccess);
+}
+
+function init() {
+  loadState();
+  if (!state.access.userId) state.access.userId = uid();
+  state.stats.visits = (state.stats.visits||0) + 1;
+  saveState();
+  syncInputsFromState();
+  setupEvents();
+  updateAccessUI();
+  renderAll();
+  if (!state.access.granted) openAccessModal();
+  track('visit');
+}
+
+init();
+</script>
+
+</body>
+</html>
